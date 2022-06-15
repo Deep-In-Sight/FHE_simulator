@@ -1,3 +1,4 @@
+from cv2 import logPolar
 import numpy as np
 
 def key_hash(key):
@@ -10,15 +11,21 @@ def secret_key_match_encryptor_key(enc, sk):
    
 
 class Parameters():
-    def __init__(self):
-        pass
+    def __init__(self, logp, logq, logn):
+        self.logp = logp
+        self.logq = logq
+        self.logn = logn
+        self.nslots = int(2**self.logn)
+
+    def __repr__(self):
+        return f" logp: {self.logp}\n logq: {self.logq} \n logn: {self.logn}"
     
 class CKKS_Parameters(Parameters):
     def __init__(self):
         """"""
         self.logp = None
         self.logq = None
-        self.logN = None
+        self.logn = None
 
 class Ring():
     def __init__(self, seed=1234):
