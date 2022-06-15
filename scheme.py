@@ -1,6 +1,17 @@
 import numpy as np
 from cipher import *
 from ciphertext import *
+from errors import *
+
+
+def check_compatible(func):
+    def func_wrapper(*args, **kwargs):
+        ctxt1, ctxt2 = args
+        if ctxt1.logp == ctxt2.logp:
+            return func(*args, **kwargs).upper()
+        else:
+            raise ScaleMisMatchError
+    return func_wrapper
 
 class Encryptor():
     def __init__(self, context):
@@ -26,8 +37,7 @@ class Decryptor():
         self._sk_hash = key_hash(secret_key)
     
     def decrypt(self, ctxt):
-        if ctxt._enckey_hash == self._sk_hash:
-            #ctxt._encrypted = False
+        if ctxt._enckey_hash == self._sk_hash and ctxt._encrypted:
             return ctxt._arr
         else:
             raise ValueError("You have a wrong secret key")
@@ -46,16 +56,13 @@ class Evaluator():
     def _rotation_key_exists(self, r):
         return self.rotation_keys[r] is not None
 
-    #@compatibility_check_ctxt
-    def add(self, ctxt1, ctxt2):
-        if not compatible(ctxt1, ctxt2):
-            raise 
+    @check_compatible
+    def add(self, ctxt1, ctxt2, inplace=False):
+        if inplace:
+            ctxt1._arr += ctxt2._arr
         else:
-            pass
+            result = ctxt1._arr + ctxt2._arr
 
     #@compatibility_check_ptxt
 
 
-def compatible(ctxt1, ctxt2):
-    """What else should I check? """
-    return ctxt1.get_scale() == ctxt2.get_scale()
