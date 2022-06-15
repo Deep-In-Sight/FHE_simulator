@@ -3,12 +3,16 @@ from cipher import *
 from ciphertext import *
 
 class Encryptor():
-    def __init__(self, enc_key):
-        self._enc_key = enc_key
+    def __init__(self, context):
+        self._context = context
+        self._enc_key = self._context.enc_key
     
     def encrypt(self, arr):
         # How to determine if I want Ciphertext of CiphertextStat?
-        ctxt = CiphertextStat(arr)
+        ctxt = CiphertextStat(arr, 
+                              self._context.params.logp, 
+                              self._context.params.logq,
+                              self._context.params.nslots)
         # TODO: Need to determine nslots 
         self._encrypt(ctxt)
         return ctxt
@@ -23,7 +27,7 @@ class Decryptor():
     
     def decrypt(self, ctxt):
         if ctxt._enckey_hash == self._sk_hash:
-            ctxt._encrypted = False
+            #ctxt._encrypted = False
             return ctxt._arr
         else:
             raise ValueError("You have a wrong secret key")
