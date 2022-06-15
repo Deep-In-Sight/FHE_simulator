@@ -1,3 +1,4 @@
+# https://stackoverflow.com/a/49224771/4294919
 class CustomException(Exception):
     default_message = ""
     def __init__(self, *args, **kwargs):
