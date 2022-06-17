@@ -1,0 +1,16 @@
+build/*
+*.egg*
+*.so
+*.o
+*.swp
+*.pickle
+.ipynb_checkpoints/*-checkpoint.ipynb
+*egg-info*
+*.pdf
+*.md5
+*.tex
+*.html
+*.js
+*.png
+*.map
+*.pyc
