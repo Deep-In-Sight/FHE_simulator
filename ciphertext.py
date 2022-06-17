@@ -1,3 +1,4 @@
+from logging.config import valid_ident
 import numpy as np
 from errors import InvalidParamError
 from cipher import Parameters
@@ -22,10 +23,10 @@ class Ciphertext():
         3. Ciphertext(30, 150, 12)
         4. Ciphertext(logp=30, logq=150, logn=12)
         """
-        self.logn = None
         self.logp = None
         self.logq = None
-        self.nslots = None
+        self._logn = None
+        self._nslots = None
         self.level = 0
         
         if len(args) == 1:
@@ -34,6 +35,7 @@ class Ciphertext():
             elif isinstance(args[0], Parameters):
                 self.__init_with_parmeters(args[0])
         elif len(args) == 3:
+            self.__init_with_tuple(*args)
             try:
                 self.__init_with_tuple(*args)
             except:
@@ -49,7 +51,27 @@ class Ciphertext():
         
         if self.logp is not None or self.logq is not None or self.logn is not None:
             self._varify_params()
-                
+    
+    @property
+    def logn(self):
+        """automatically update on changing logn"""
+        return self._logn
+
+    @logn.setter
+    def logn(self, val):
+        self._logn = val
+        self._nslots = 2**self._logn
+
+    @property
+    def nslots(self):
+        return self._nslots
+
+    @nslots.setter
+    def nslots(self, val):
+        self._nslots = val
+        # TODO: need to deal with inexact nslots
+        self._logn = int(np.log2(self._nslots))
+
         
     def __init_with_ctxt__(self, ctxt):
         self.logp = ctxt.logp
@@ -94,6 +116,8 @@ class CiphertextStat(Ciphertext):
         self._enckey_hash = None
     
     def _set_arr(self, enckey_hash, arr):
+        assert len(arr) <= self.nslots, "array longer than Nslots"
+
         if not isinstance(arr, np.ndarray):
             arr = np.array(arr)
 
@@ -101,12 +125,12 @@ class CiphertextStat(Ciphertext):
             print("Need a numeric type")
             raise ValueError
         else:
-            self._arr = arr
+            self._arr = np.zeros(self.nslots)
+            self._arr[:len(arr)] = arr
         
         self._n_elements = self._arr.__len__()
         self._enckey_hash = enckey_hash
         self._encrypted = True
-
         
     def __repr__(self):
         if self._encrypted:

@@ -14,7 +14,7 @@ class Encryptor():
         # How to determine if I want Ciphertext of CiphertextStat?
         ctxt = CiphertextStat(self._context.params.logp, 
                               self._context.params.logq,
-                              self._context.params.nslots)
+                              self._context.params.logn)
         
         #encoded = _stringify(arr)
         ctxt._set_arr(self.enckey_hash, arr)
@@ -76,6 +76,22 @@ class Evaluator():
         else:
             print("Keys don't match")
 
-    #@compatibility_check_ptxt
+    @staticmethod
+    @check_compatible
+    def _mult(ctxt1, ctxt2):
+        """
+        """
+        return ctxt1._arr * ctxt2._arr
+        
+    def mult(self, ctxt1, ctxt2, inplace=False):
+        if self.multkey_hash == ctxt1._enckey_hash == ctxt2._enckey_hash:
+            if inplace:
+                ctxt1._arr = self._mult(ctxt1,ctxt2)
+            else:
+                new_ctxt = CiphertextStat(ctxt1)
+                new_ctxt._set_arr(ctxt1._enckey_hash, self._mult(ctxt1,ctxt2))
+                return new_ctxt
+        else:
+            print("Keys don't match")
 
 
