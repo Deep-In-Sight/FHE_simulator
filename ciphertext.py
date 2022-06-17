@@ -1,16 +1,78 @@
 import numpy as np
 from cipher import key_hash
 
+from errors import InvalidParamError
+from cipher import Parameters
+
 class Ciphertext():
-    def __init__(self, logp, logq, nslots):
+    def __init__(self, *args, **kwargs):
         """Base class for any ciphertext
         Currently following the CKKS convention -> should be changed.
+        
+        Note
+        ----
+        Supports four 'constructors'
+        
+        1. Ciphertext(another_ctxt)
+        2. Ciphertext(ctxt_params), where
+            class Parameters():
+                self.logp = 
+                self.logq = 
+                self.logn = 
+                self. ...
+                
+        3. Ciphertext(30, 150, 12)
+        4. Ciphertext(logp=30, logq=150, logn=12)
         """
-        self.logp = logp
-        self.logq = logq
-        self.nslots = nslots
+        self.logn = None
+        self.logp = None
+        self.logq = None
+        self.nslots = None
         self.level = 0
-        pass
+        
+        if len(args) == 1:
+            if isinstance(args[0], Ciphertext):
+                self.__init_with_ctxt__(args[0])
+            elif isinstance(args[0], Parameters):
+                self.__init_with_params__(args[0])
+        elif len(args) == 3:
+            try:
+                self.__init_with_tuple(*args)
+            except:
+                print("failed")
+        else:
+            try:
+                self.logp = kwargs['logp']
+                self.logq = kwargs['logq']
+                self.logn = kwargs['logn']
+            except NameError as err:
+                print("Not valid set of kwargs are given. "
+                      "try Ciphertext(logp, logq, logn)")
+        
+        if self.logp is not None or self.logq is not None or self.logn is not None:
+            self._varify_params()
+                
+        
+    def __init_with_ctxt__(self, ctxt):
+        self.logp = ctxt.logp
+        self.logq = ctxt.logq
+        self.logn = ctxt.logn
+        
+    def __init_with_parmeters(self, parms):
+        self.logp = parms['logp']
+        self.logq = parms['logq']
+        self.logn = parms['logn']
+        
+    def __init_with_tuple(self, *arg):
+        self.logp, self.logq, self.logn = arg
+        
+    def _varify_params(self):
+        """Todo"""
+        if False:
+            raise InvalidParamError
+        
+
+
 
 class CiphertextStat(Ciphertext):
     def __init__(self, arr, *args, **kwargs):

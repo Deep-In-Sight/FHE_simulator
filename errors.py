@@ -13,3 +13,6 @@ class DepthExhaustionError(Exception):
 
 class ErrorOutOfBoudError(Exception):
     default_message = """Error has grown too large"""
+
+class InvalidParamError(Exception):
+    default_message = "Invalid Ciphertext parameter"
