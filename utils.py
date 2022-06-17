@@ -1,5 +1,6 @@
+import numbers
 from ciphertext import CiphertextStat
-from errors import ScaleMisMatchError
+from errors import ScaleMisMatchError, LengthMisMatchError
 import numpy as np
 """
 HEAAN's Ciphertext class has two construtors.
@@ -25,3 +26,21 @@ def check_compatible(func):
             raise ScaleMisMatchError
     return func_wrapper
 
+def check_plain_length(func):
+    def func_wrapper(*args, **kwargs):
+        ctxt, ptxt = args
+        try:
+            ll = len(ptxt)
+            if ll == ctxt._n_elements:
+                arr = np.zeros(ctxt.nslots)
+                arr[:ll] = ptxt
+                ptxt = arr
+        except:
+            if isinstance(ptxt, numbers.Number):
+                pass
+        else:
+            raise LengthMisMatchError
+        finally:
+            return func(ctxt, ptxt, **kwargs)
+        
+    return func_wrapper

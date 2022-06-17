@@ -79,6 +79,20 @@ class Evaluator():
             return new_ctxt
 
     @staticmethod
+    @check_plain_length
+    def _mult_by_plain(ctxt, ptxt):
+        return ctxt._arr * ptxt
+
+    def mult_by_plain(self, ctxt, ptxt, inplace=False):
+        assert self.multkey_hash == ctxt._enckey_hash, "Eval key and Enc keys don't match"        
+        if inplace:
+            ctxt._arr = self._mult_by_plain(ctxt, ptxt)
+        else:
+            new_ctxt = CiphertextStat(ctxt)
+            new_ctxt._set_arr(ctxt._enckey_hash, self._mult_by_plain(ctxt, ptxt))
+            return new_ctxt
+
+    @staticmethod
     def _leftrot(ctxt:Ciphertext, r:int):
         """
         """
@@ -104,7 +118,8 @@ class Evaluator():
             new_ctxt._set_arr(ctxt._enckey_hash, self._leftrot(ctxt, r))
             return new_ctxt
 
-
+    def div_by_plain(self, ctxt, ptxt):
+        self.mult_by_plain(ctxt, 1./ptxt)
 
 
 

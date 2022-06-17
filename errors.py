@@ -16,3 +16,7 @@ class ErrorOutOfBoudError(Exception):
 
 class InvalidParamError(Exception):
     default_message = "Invalid Ciphertext parameter"
+
+class LengthMisMatchError(Exception):
+    default_message = "Invalid plaintext length"
+    
