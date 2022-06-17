@@ -48,15 +48,13 @@ class Evaluator():
         self._multiplication_key = keys['mult']
         self.rotation_keys = keys['rot']
         self.multkey_hash = key_hash(-1*self._multiplication_key)
-    
-    def rotate_left(self, ctxt, r):
-        if self._rotation_key_exists(r):
-            return np.roll(ctxt, -r)
-        else:
-            raise ValueError 
-    
-    def _rotation_key_exists(self, r):
-        return self.rotation_keys[r] is not None
+
+    @staticmethod
+    def copy(ctxt:CiphertextStat):
+        """copy a ciphertextStat instance"""
+        new_ctxt = CiphertextStat(ctxt)
+        new_ctxt._set_arr(ctxt._enckey_hash, ctxt._arr)
+        return new_ctxt
 
     @staticmethod
     @check_compatible
@@ -91,22 +89,24 @@ class Evaluator():
             return new_ctxt
 
     @staticmethod
-    @check_compatible
     def _leftrot(ctxt:Ciphertext, r:int):
         """
         """
         return np.roll(ctxt._arr, -r)
         
-    def leftrot(self, ctxt:CiphertextStat, r:int, inplace=False):
+    def lrot(self, ctxt:CiphertextStat, r:int, inplace=True):
         """Left-rotate ciphertext.
 
         note
         ----
         Right-rotation implemented in HEAAN and SEAL is simply 
-        leftrot(nslots - r). 
+        lrot(nslots - r). 
         Thus, rightrot is merely a convenience function.
         """
         assert self.multkey_hash == ctxt._enckey_hash, "Eval key and Enc key don't match"
+        
+        # TODO: assert rotation_key exists
+
         if inplace:
             ctxt._arr = self._leftrot(ctxt, r)
         else:
