@@ -34,7 +34,7 @@ class Ciphertext():
             if isinstance(args[0], Ciphertext):
                 self.__init_with_ctxt__(args[0])
             elif isinstance(args[0], Parameters):
-                self.__init_with_params__(args[0])
+                self.__init_with_parmeters(args[0])
         elif len(args) == 3:
             try:
                 self.__init_with_tuple(*args)
@@ -75,7 +75,7 @@ class Ciphertext():
 
 
 class CiphertextStat(Ciphertext):
-    def __init__(self, arr, *args, **kwargs):
+    def __init__(self, *args, **kwargs):
         """class
 
         min, max: 
@@ -95,8 +95,6 @@ class CiphertextStat(Ciphertext):
         self._min = None  
         self._max = None
         self._mean = None
-        self._set_arr(arr)
-        self._n_elements = self._arr.__len__()
         self._encrypted = False
         self._enckey_hash = None
     
@@ -109,6 +107,8 @@ class CiphertextStat(Ciphertext):
             raise ValueError
         else:
             self._arr = arr
+        
+        self._n_elements = self._arr.__len__()
 
     def _encrypt(self, encrypt_key):
         """to be called by Encryptor
