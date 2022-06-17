@@ -2,35 +2,36 @@ import numpy as np
 from cipher import *
 from ciphertext import *
 from errors import *
-
-
-def check_compatible(func):
-    def func_wrapper(*args, **kwargs):
-        ctxt1, ctxt2 = args
-        if ctxt1.logp == ctxt2.logp:
-            return func(*args, **kwargs)
-        else:
-            raise ScaleMisMatchError
-    return func_wrapper
+from utils import *
 
 class Encryptor():
     def __init__(self, context):
         self._context = context
         self._enc_key = self._context.enc_key
+        self.enckey_hash = key_hash(self._enc_key)
     
     def encrypt(self, arr):
         # How to determine if I want Ciphertext of CiphertextStat?
         ctxt = CiphertextStat(self._context.params.logp, 
                               self._context.params.logq,
                               self._context.params.nslots)
-        ctxt._set_arr(arr)
+        
+        #encoded = _stringify(arr)
+        ctxt._set_arr(self.enckey_hash, arr)
         # TODO: Need to determine nslots 
-        self._encrypt(ctxt)
         return ctxt
     
-    def _encrypt(self, ctxt):
-        ctxt._encrypt(self._enc_key)
-    
+def _stringify(arr):
+    """convert array elements to a string"""
+    return [str(a) for a in arr]
+
+def Encoder():
+    def __init__(self):
+        pass
+
+    def encode(self, arr):
+        return self._stringify(arr)
+
 class Decryptor():
     def __init__(self, secret_key):
         self._secret_key = secret_key
@@ -44,8 +45,9 @@ class Decryptor():
             
 class Evaluator():
     def __init__(self, keys):
-        self.multiplication_key = keys['mult']
+        self._multiplication_key = keys['mult']
         self.rotation_keys = keys['rot']
+        self.multkey_hash = key_hash(-1*self._multiplication_key)
     
     def rotate_left(self, ctxt, r):
         if self._rotation_key_exists(r):
@@ -63,14 +65,16 @@ class Evaluator():
         """
         return ctxt1._arr + ctxt2._arr
         
-
     def add(self, ctxt1, ctxt2, inplace=False):
-        if inplace:
-            ctxt1._arr = self._add(ctxt1,ctxt2)
+        if self.multkey_hash == ctxt1._enckey_hash == ctxt2._enckey_hash:
+            if inplace:
+                ctxt1._arr = self._add(ctxt1,ctxt2)
+            else:
+                new_ctxt = CiphertextStat(ctxt1)
+                new_ctxt._set_arr(ctxt1._enckey_hash, self._add(ctxt1,ctxt2))
+                return new_ctxt
         else:
-            new_ctxt = CiphertextStat(ctxt1)
-            new_ctxt._arr = self._add(ctxt1,ctxt2)
-            return new_ctxt
+            print("Keys don't match")
 
     #@compatibility_check_ptxt
 
