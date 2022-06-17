@@ -128,7 +128,7 @@ class CiphertextStat(Ciphertext):
             self._arr = np.zeros(self.nslots)
             self._arr[:len(arr)] = arr
         
-        self._n_elements = self._arr.__len__()
+        self._n_elements = len(arr)
         self._enckey_hash = enckey_hash
         self._encrypted = True
         
