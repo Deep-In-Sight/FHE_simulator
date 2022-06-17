@@ -1,15 +1,6 @@
 from cv2 import logPolar
 import numpy as np
 
-def key_hash(key):
-    return hash(str(key*np.conj(key)))
-
-def secret_key_match_encryptor_key(enc, sk):
-    """키 pair를 conjigate로 만들자! 
-    """
-    return key_hash(sk) == key_hash(enc)
-   
-
 class Parameters():
     def __init__(self, logp, logq, logn):
         self.logp = logp
@@ -56,5 +47,11 @@ class Context():
         else:
             return np.conj(self.enc_key) 
         
+    def generate_mult_key(self):
+        """Fake"""
+        if self.enc_key is None:
+            raise ValueError
+        else:
+            return -1*np.conj(self.enc_key) 
 
         
