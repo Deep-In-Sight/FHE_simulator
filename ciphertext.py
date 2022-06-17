@@ -94,11 +94,14 @@ class CiphertextStat(Ciphertext):
         self._enckey_hash = None
     
     def _set_arr(self, enckey_hash, arr):
-        try:
-            self._arr = arr
-        except:
+        if not isinstance(arr, np.ndarray):
+            arr = np.array(arr)
+
+        if not np.issubdtype(arr.dtype, np.number):
             print("Need a numeric type")
             raise ValueError
+        else:
+            self._arr = arr
         
         self._n_elements = self._arr.__len__()
         self._enckey_hash = enckey_hash
