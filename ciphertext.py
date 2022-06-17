@@ -1,6 +1,4 @@
 import numpy as np
-from cipher import key_hash
-
 from errors import InvalidParamError
 from cipher import Parameters
 
@@ -72,8 +70,6 @@ class Ciphertext():
             raise InvalidParamError
         
 
-
-
 class CiphertextStat(Ciphertext):
     def __init__(self, *args, **kwargs):
         """class
@@ -95,29 +91,23 @@ class CiphertextStat(Ciphertext):
         self._min = None  
         self._max = None
         self._mean = None
-        self._encrypted = False
         self._enckey_hash = None
     
-    def _set_arr(self, arr):
-        if not isinstance(arr, np.ndarray):
-            arr = np.array(arr)
-
-        if not np.issubdtype(arr.dtype, np.number):
+    def _set_arr(self, enckey_hash, arr):
+        try:
+            self._arr = arr
+        except:
             print("Need a numeric type")
             raise ValueError
-        else:
-            self._arr = arr
         
         self._n_elements = self._arr.__len__()
-
-    def _encrypt(self, encrypt_key):
-        """to be called by Encryptor
-        """
-        self._enckey_hash = key_hash(encrypt_key)
+        self._enckey_hash = enckey_hash
         self._encrypted = True
+
         
     def __repr__(self):
         if self._encrypted:
             return("You can't read the content")
         else:
             return self._arr.__repr__()
+
