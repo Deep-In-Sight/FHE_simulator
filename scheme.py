@@ -60,38 +60,56 @@ class Evaluator():
 
     @staticmethod
     @check_compatible
-    def _add(ctxt1, ctxt2):
+    def _add(ctxt1:Ciphertext, ctxt2:Ciphertext):
         """
         """
         return ctxt1._arr + ctxt2._arr
         
-    def add(self, ctxt1, ctxt2, inplace=False):
-        if self.multkey_hash == ctxt1._enckey_hash == ctxt2._enckey_hash:
-            if inplace:
-                ctxt1._arr = self._add(ctxt1,ctxt2)
-            else:
-                new_ctxt = CiphertextStat(ctxt1)
-                new_ctxt._set_arr(ctxt1._enckey_hash, self._add(ctxt1,ctxt2))
-                return new_ctxt
+    def add(self, ctxt1:CiphertextStat, ctxt2:CiphertextStat, inplace=False):
+        assert self.multkey_hash == ctxt1._enckey_hash == ctxt2._enckey_hash, "Eval key and Enc keys don't match"
+        if inplace:
+            ctxt1._arr = self._add(ctxt1,ctxt2)
         else:
-            print("Keys don't match")
-
+            new_ctxt = CiphertextStat(ctxt1)
+            new_ctxt._set_arr(ctxt1._enckey_hash, self._add(ctxt1,ctxt2))
+            return new_ctxt
+        
     @staticmethod
     @check_compatible
-    def _mult(ctxt1, ctxt2):
+    def _mult(ctxt1:Ciphertext, ctxt2:Ciphertext):
         """
         """
         return ctxt1._arr * ctxt2._arr
         
     def mult(self, ctxt1, ctxt2, inplace=False):
-        if self.multkey_hash == ctxt1._enckey_hash == ctxt2._enckey_hash:
-            if inplace:
-                ctxt1._arr = self._mult(ctxt1,ctxt2)
-            else:
-                new_ctxt = CiphertextStat(ctxt1)
-                new_ctxt._set_arr(ctxt1._enckey_hash, self._mult(ctxt1,ctxt2))
-                return new_ctxt
+        assert self.multkey_hash == ctxt1._enckey_hash == ctxt2._enckey_hash, "Eval key and Enc keys don't match"        
+        if inplace:
+            ctxt1._arr = self._mult(ctxt1,ctxt2)
         else:
-            print("Keys don't match")
+            new_ctxt = CiphertextStat(ctxt1)
+            new_ctxt._set_arr(ctxt1._enckey_hash, self._mult(ctxt1,ctxt2))
+            return new_ctxt
 
+    @staticmethod
+    @check_compatible
+    def _leftrot(ctxt:Ciphertext, r:int):
+        """
+        """
+        return np.roll(ctxt._arr, -r)
+        
+    def leftrot(self, ctxt:CiphertextStat, r:int, inplace=False):
+        """Left-rotate ciphertext.
 
+        note
+        ----
+        Right-rotation implemented in HEAAN and SEAL is simply 
+        leftrot(nslots - r). 
+        Thus, rightrot is merely a convenience function.
+        """
+        assert self.multkey_hash == ctxt._enckey_hash, "Eval key and Enc key don't match"
+        if inplace:
+            ctxt._arr = self._leftrot(ctxt, r)
+        else:
+            new_ctxt = CiphertextStat(ctxt)
+            new_ctxt._set_arr(ctxt._enckey_hash, self._leftrot(ctxt, r))
+            return new_ctxt
