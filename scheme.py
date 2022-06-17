@@ -1,3 +1,4 @@
+from typing import Dict
 import numpy as np
 from cipher import *
 from ciphertext import *
@@ -5,7 +6,7 @@ from errors import *
 from utils import *
 
 class Encryptor():
-    def __init__(self, context):
+    def __init__(self, context:Context):
         self._context = context
         self._enc_key = self._context.enc_key
         self.enckey_hash = key_hash(self._enc_key)
@@ -20,17 +21,6 @@ class Encryptor():
         ctxt._set_arr(self.enckey_hash, arr)
         # TODO: Need to determine nslots 
         return ctxt
-    
-def _stringify(arr):
-    """convert array elements to a string"""
-    return [str(a) for a in arr]
-
-def Encoder():
-    def __init__(self):
-        pass
-
-    def encode(self, arr):
-        return self._stringify(arr)
 
 class Decryptor():
     def __init__(self, secret_key):
@@ -44,7 +34,7 @@ class Decryptor():
             raise ValueError("You have a wrong secret key")
             
 class Evaluator():
-    def __init__(self, keys):
+    def __init__(self, keys:Dict):
         self._multiplication_key = keys['mult']
         self.rotation_keys = keys['rot']
         self.multkey_hash = key_hash(-1*self._multiplication_key)
@@ -113,3 +103,26 @@ class Evaluator():
             new_ctxt = CiphertextStat(ctxt)
             new_ctxt._set_arr(ctxt._enckey_hash, self._leftrot(ctxt, r))
             return new_ctxt
+
+
+
+
+
+
+
+
+
+    
+def _stringify(arr):
+    """convert array elements to a string"""
+    return [str(a) for a in arr]
+
+def Encoder():
+    def __init__(self):
+        pass
+
+    def encode(self, arr):
+        return self._stringify(arr)
+
+
+

@@ -1,4 +1,3 @@
-from cv2 import logPolar
 import numpy as np
 
 class Parameters():
@@ -54,4 +53,3 @@ class Context():
         else:
             return -1*np.conj(self.enc_key) 
 
-        
