@@ -53,6 +53,8 @@ class Algorithms():
         Error accumulation may cause some trouble. 
         We need a robust way to monitor error growth.
         """
+        if not partial and duplicate:
+            raise ValueError("Partial = False, duplicate = True not allowed.")
         ev = self.evaluator
 
         if partial:
@@ -90,3 +92,8 @@ class Algorithms():
         else:
             return ev.mult_by_plain(ctxt, _mask, inplace=False)
 
+    def sqrt(self, ctxt:CiphertextStat, inplace=False):
+        """
+
+        It's not that trivial...
+        """
