@@ -97,3 +97,11 @@ class Algorithms():
 
         It's not that trivial...
         """
+
+    def div(self, ctxt1:CiphertextStat, ctxt2:CiphertextStat, inplace=False):
+        """Division by Goldschmidt method.
+
+        Other methods are worth try.
+        https://en.wikipedia.org/wiki/Division_algorithm
+        """
+        pass
