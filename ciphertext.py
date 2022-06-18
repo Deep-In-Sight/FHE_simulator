@@ -138,5 +138,8 @@ class CiphertextStat(Ciphertext):
         if self._encrypted:
             return("You can't read the content")
         else:
-            return self._arr.__repr__()
+            if self._valid_slots:
+                return self._arr[self._valid_slots].__repr__()
+            else:
+                return self._arr.__repr__()
 
