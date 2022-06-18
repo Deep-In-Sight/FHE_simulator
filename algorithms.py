@@ -90,14 +90,3 @@ class Algorithms():
         else:
             return ev.mult_by_plain(ctxt, _mask, inplace=False)
 
-    def variance(self, ctxt, ev):
-        ev = self.evaluator
-        
-        n = ctxt._n_elements
-        summed = self.sum_reduce(ctxt, partial=True, duplicate=True)
-        summed = self.put_mask(summed, np.arange(ctxt._n_elements))
-        mean = ev.div_by_plain(summed, n)
-        sub = ev.sub(ctxt, mean)
-        squared = ev.mult(sub, sub, inplace=False)
-        summed_sq = self.sum_reduce(squared, partial=True, duplicate=False)
-        return ev.div_by_plain(summed_sq, n)
