@@ -79,7 +79,6 @@ class Evaluator():
             new_ctxt._set_arr(ctxt1._enckey_hash, self._sub(ctxt1,ctxt2))
             return new_ctxt
         
-
     @staticmethod
     @check_compatible
     def _mult(ctxt1:Ciphertext, ctxt2:Ciphertext):
@@ -109,6 +108,23 @@ class Evaluator():
             new_ctxt = CiphertextStat(ctxt)
             new_ctxt._set_arr(ctxt._enckey_hash, self._mult_by_plain(ctxt, ptxt))
             return new_ctxt
+
+    @staticmethod
+    def _sqaure(ctxt:Ciphertext):
+        """
+        proxy for Scheme.square
+        """
+        return ctxt._arr**2
+        
+    def sqaure(self, ctxt, inplace=False):
+        assert self.multkey_hash == ctxt._enckey_hash, "Eval key and Enc key don't match"        
+        if inplace:
+            ctxt._arr = self._square(ctxt)
+        else:
+            new_ctxt = CiphertextStat(ctxt)
+            new_ctxt._set_arr(ctxt._enckey_hash, self._sqaure(ctxt))
+            return new_ctxt
+
 
     @staticmethod
     def _leftrot(ctxt:Ciphertext, r:int):
