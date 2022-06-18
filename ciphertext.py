@@ -115,7 +115,7 @@ class CiphertextStat(Ciphertext):
         self._mean = None
         self._enckey_hash = None
     
-    def _set_arr(self, enckey_hash, arr):
+    def _set_arr(self, enckey_hash, arr, n_elements=None):
         assert len(arr) <= self.nslots, "array longer than Nslots"
 
         if not isinstance(arr, np.ndarray):
@@ -127,8 +127,10 @@ class CiphertextStat(Ciphertext):
         else:
             self._arr = np.zeros(self.nslots)
             self._arr[:len(arr)] = arr
-        
-        self._n_elements = len(arr)
+        if n_elements is not None:
+            self._n_elements = n_elements
+        else:
+            self._n_elements = len(arr)
         self._enckey_hash = enckey_hash
         self._encrypted = True
         

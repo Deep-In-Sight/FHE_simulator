@@ -3,14 +3,39 @@ import numpy as np
 from ciphertext import CiphertextStat
 from scheme import Evaluator
 
+# class Mask():
+#     def __init__(self, beg, fin, stride):
+#         """Flexible mask class
+        
+#         Need to devise a concise and effective pattern generation method
+#         -- Like numpy Slice Tile tensor. 
+#         """
+#         self.beg = beg
+#         self.fin = fin
+#         self.stride = stride
+
+
+
 class Algorithms():
     def __init__(self, evaluator:Evaluator):
         self.evaluator = evaluator
 
-    def fhe_sum(self,
-                ctxt:CiphertextStat, 
-                partial=False): 
+    def sum_reduce(self,
+                    ctxt:CiphertextStat, 
+                    partial=False, 
+                    duplicate=False): 
         """calculate sum of all elements in the array.
+
+
+        Use cases
+        -----
+        1. The sum of the array ends up at the first slot. 
+            Some of other slots are contaminated. (may need masking later)
+        2. The sum of the array fills valid slots.
+            Some of other slots are contaminated. (may need masking later)
+        3. The sum of the array fills all slots.
+            No contaminated slots.
+
 
         note
         ----
@@ -28,6 +53,8 @@ class Algorithms():
         Error accumulation may cause some trouble. 
         We need a robust way to monitor error growth.
         """
+        ev = self.evaluator
+
         if partial:
             n = ctxt._n_elements
         else:
@@ -35,10 +62,42 @@ class Algorithms():
         log2n = np.log2(n).astype(int)
 
         # keep the original ctxt intact
-        ctxt_ = self.evaluator.copy(ctxt)
+        ctxt_ = ev.copy(ctxt)
+        if duplicate:
+            # shifted copy
+            rot_copy = ev.copy(ctxt)
+            ev.lrot(rot_copy, -ctxt_._n_elements)
+
+            ev.add(ctxt_, rot_copy, inplace=True)
         for i in range(log2n):
-            tmp = self.evaluator.copy(ctxt_)
-            self.evaluator.lrot(tmp, 2**i, inplace=True)
-            self.evaluator.add(ctxt_, tmp, inplace=True)
-        
+            tmp = ev.copy(ctxt_)
+            ev.lrot(tmp, 2**i, inplace=True)
+            ev.add(ctxt_, tmp, inplace=True)
         return ctxt_
+
+    def put_mask(self, ctxt:CiphertextStat, mask:slice, inplace=False):
+        """Multily ctxt by a plain mask
+
+        Mask could evolve into much more flexible one. 
+        to suppor convolutions, for example.
+        """
+        ev = self.evaluator
+
+        _mask = np.zeros(ctxt.nslots)
+        _mask[mask] = 1
+        if inplace:
+            ev.mult_by_plain(ctxt, _mask, inplace=True)
+        else:
+            return ev.mult_by_plain(ctxt, _mask, inplace=False)
+
+    def variance(self, ctxt, ev):
+        ev = self.evaluator
+        
+        n = ctxt._n_elements
+        summed = self.sum_reduce(ctxt, partial=True, duplicate=True)
+        summed = self.put_mask(summed, np.arange(ctxt._n_elements))
+        mean = ev.div_by_plain(summed, n)
+        sub = ev.sub(ctxt, mean)
+        squared = ev.mult(sub, sub, inplace=False)
+        summed_sq = self.sum_reduce(squared, partial=True, duplicate=False)
+        return ev.div_by_plain(summed_sq, n)
