@@ -19,6 +19,7 @@ def secret_key_match_encryptor_key(enc, sk):
    
 def check_compatible(func):
     def func_wrapper(*args, **kwargs):
+        #print(args)
         ctxt1, ctxt2 = args
         if ctxt1.logp == ctxt2.logp:
             return func(*args, **kwargs)
@@ -44,3 +45,25 @@ def check_plain_length(func):
             return func(ctxt, ptxt, **kwargs)
         
     return func_wrapper
+
+
+class Checker():
+    """Error checker"""
+    def __init__(self, atol=1e-6, rtol=1e-4):
+        self.atol = atol
+        self.rtol = rtol
+
+    def close(self, v1, v2, atol=None, rtol=None):
+        if atol is None:
+            atol = self.atol
+        if rtol is None:
+            rtol = self.rtol
+            
+        if np.isclose(v1,v2,atol=atol):
+            print(f"Absolute error within: {atol:.1E}")
+        else:
+            print(f"Too large absolute error (> {atol:.1E})")
+        if np.isclose(v1,v2,rtol=rtol):
+            print(f"Relative error within: {rtol:.1E}")
+        else:
+            print(f"Too large relative error (> {rtol:.1E})")
