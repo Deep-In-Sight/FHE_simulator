@@ -43,13 +43,14 @@ class Evaluator():
     def copy(ctxt:CiphertextStat):
         """copy a ciphertextStat instance"""
         new_ctxt = CiphertextStat(ctxt)
-        new_ctxt._set_arr(ctxt._enckey_hash, ctxt._arr)
+        new_ctxt._set_arr(ctxt._enckey_hash, ctxt._arr, 
+                          n_elements=ctxt._n_elements)
         return new_ctxt
 
     @staticmethod
     @check_compatible
     def _add(ctxt1:Ciphertext, ctxt2:Ciphertext):
-        """
+        """proxy for HEAAN.ring.add() and ring.addAndEqual()
         """
         return ctxt1._arr + ctxt2._arr
         
@@ -61,7 +62,24 @@ class Evaluator():
             new_ctxt = CiphertextStat(ctxt1)
             new_ctxt._set_arr(ctxt1._enckey_hash, self._add(ctxt1,ctxt2))
             return new_ctxt
+
+    @staticmethod
+    @check_compatible
+    def _sub(ctxt1:Ciphertext, ctxt2:Ciphertext):
+        """proxy for HEAAN.ring.sub() and ring.subAndEqual1,2()
+        """
+        return ctxt1._arr - ctxt2._arr
         
+    def sub(self, ctxt1:CiphertextStat, ctxt2:CiphertextStat, inplace=False):
+        assert self.multkey_hash == ctxt1._enckey_hash == ctxt2._enckey_hash, "Eval key and Enc keys don't match"
+        if inplace:
+            ctxt1._arr = self._sub(ctxt1,ctxt2)
+        else:
+            new_ctxt = CiphertextStat(ctxt1)
+            new_ctxt._set_arr(ctxt1._enckey_hash, self._sub(ctxt1,ctxt2))
+            return new_ctxt
+        
+
     @staticmethod
     @check_compatible
     def _mult(ctxt1:Ciphertext, ctxt2:Ciphertext):
@@ -119,13 +137,7 @@ class Evaluator():
             return new_ctxt
 
     def div_by_plain(self, ctxt, ptxt):
-        self.mult_by_plain(ctxt, 1./ptxt)
-
-
-
-
-
-
+        return self.mult_by_plain(ctxt, 1./ptxt)
 
     
 def _stringify(arr):
