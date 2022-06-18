@@ -95,7 +95,7 @@ class Statistics():
         ev = self.evaluator
         algo = self.algorithms
 
-        n = ctxt1._n_elements        
+        n = ctxt1._n_elements -1       
         mean1 = self.mean(ctxt1, partial=True, duplicate=True)
         mean1 = algo.put_mask(mean1, np.arange(ctxt1._n_elements))
         
@@ -135,5 +135,7 @@ class Statistics():
         pass
 
     def coef_var(self,ctxt):
+        ev = self.evaluator
         algo = self.algorithms
-        return algo.div(self.variance(ctxt), self.mean(ctxt))
+        
+        return ev.mult(self.variance(ctxt), algo.inv(self.mean(ctxt)))

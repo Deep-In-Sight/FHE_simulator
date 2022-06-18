@@ -64,6 +64,21 @@ class Evaluator():
             return new_ctxt
 
     @staticmethod
+    def _add_plain(ctxt:Ciphertext, ptxt:float):
+        """proxy for HEAAN.ring.addConst() and ring.addConstAndEqual()
+        """
+        return ctxt._arr + ptxt
+        
+    def add_plain(self, ctxt:CiphertextStat, ptxt:float, inplace=False):
+        assert self.multkey_hash == ctxt._enckey_hash, "Eval key and Enc keys don't match"
+        if inplace:
+            ctxt._arr = self._add_plain(ctxt,ptxt)
+        else:
+            new_ctxt = CiphertextStat(ctxt)
+            new_ctxt._set_arr(ctxt._enckey_hash, self._add_plain(ctxt,ptxt))
+            return new_ctxt
+
+    @staticmethod
     @check_compatible
     def _sub(ctxt1:Ciphertext, ctxt2:Ciphertext):
         """proxy for HEAAN.ring.sub() and ring.subAndEqual1,2()
@@ -78,7 +93,23 @@ class Evaluator():
             new_ctxt = CiphertextStat(ctxt1)
             new_ctxt._set_arr(ctxt1._enckey_hash, self._sub(ctxt1,ctxt2))
             return new_ctxt
+
+    @staticmethod
+    def _sub_plain(ctxt:Ciphertext, ptxt:float):
+        """proxy for HEAAN.ring.sub() and ring.subAndEqual1,2()
+        """
+        return ctxt._arr - ptxt
         
+    def sub_plain(self, ctxt:CiphertextStat, ptxt:float, inplace=False):
+        assert self.multkey_hash == ctxt._enckey_hash, "Eval key and Enc key don't match"
+        if inplace:
+            ctxt._arr = self._sub_plain(ctxt, ptxt)
+        else:
+            new_ctxt = CiphertextStat(ctxt)
+            new_ctxt._set_arr(ctxt._enckey_hash, self._sub_plain(ctxt, ptxt))
+            return new_ctxt
+        
+
     @staticmethod
     @check_compatible
     def _mult(ctxt1:Ciphertext, ctxt2:Ciphertext):
@@ -96,7 +127,6 @@ class Evaluator():
             return new_ctxt
 
     @staticmethod
-    @check_plain_length
     def _mult_by_plain(ctxt, ptxt):
         return ctxt._arr * ptxt
 

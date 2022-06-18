@@ -98,10 +98,31 @@ class Algorithms():
         It's not that trivial...
         """
 
-    def div(self, ctxt1:CiphertextStat, ctxt2:CiphertextStat, inplace=False):
-        """Division by Goldschmidt method.
+    def inv(self, ctxt:CiphertextStat, number:float=1e-4, n_iters=20):
+        """Division by Newton-Raphson method.
+        https://en.wikipedia.org/wiki/Division_algorithm#Newton%E2%80%93Raphson_division
 
-        Other methods are worth try.
-        https://en.wikipedia.org/wiki/Division_algorithm
+        parameters
+        ----------
+        number: initial guess 0 < ig < 1
+        Other methods may worth try.
+        
+        NOTE
+        ----
+        Needs an error analysis
+
         """
-        pass
+        ev = self.evaluator
+
+        # In the first iteration, number is ptxt
+        q_ = ev.mult_by_plain(ctxt, -number, inplace=False)
+        sub_ = ev.add_plain(q_, 2, inplace=False)
+        number_ = ev.mult_by_plain(sub_, number, inplace=False)
+
+        for i in range(1, n_iters):
+            tmp = ev.mult_by_plain(number_, -1, inplace=False)
+            q_ = ev.mult(ctxt, tmp, inplace=False)
+            sub_ = ev.add_plain(q_, 2, inplace=False)
+            ev.mult(number_, sub_, inplace=True)
+
+        return number_
