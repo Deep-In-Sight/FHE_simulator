@@ -92,12 +92,6 @@ class Algorithms():
         else:
             return ev.mult_by_plain(ctxt, _mask, inplace=False)
 
-    def sqrt(self, ctxt:CiphertextStat, inplace=False):
-        """
-
-        It's not that trivial...
-        """
-
     def inv(self, ctxt:CiphertextStat, number:float=1e-4, n_iters=20):
         """Division by Newton-Raphson method.
         https://en.wikipedia.org/wiki/Division_algorithm#Newton%E2%80%93Raphson_division
@@ -126,3 +120,35 @@ class Algorithms():
             ev.mult(number_, sub_, inplace=True)
 
         return number_
+
+################# SQRT #################
+    def _inv_sqrt_initial_guess(self, n_iter, tol):
+        """
+
+        """
+        pass
+
+    def inv_sqrt(self, ctxt:CiphertextStat):
+        """
+        https://github.com/pandasamanvaya/Pivot-tangent
+        Newton's method + pivot point
+        """
+        pass
+
+    def sqrt(self, ctxt:CiphertextStat, inplace=False):
+        ev = self.evaluator
+
+        return ev.mult(ctxt, self.inv_sqrt(ctxt), inplace=False)
+
+################# comp #################
+    def sign(self, ctxt):
+        pass
+
+    def _powerExtended(self, ctxt:CiphertextStat,degree:int):
+        """
+        SchemeAlgo::powerExtended(Ciphertext* res, Ciphertext& cipher, long logp, long degree)
+        """
+
+    def eval_poly(self, ctxt:CiphertextStat, coeff:list, tol=1e-6):
+        pass
+
