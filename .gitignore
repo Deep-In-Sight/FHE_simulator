@@ -6,7 +6,7 @@ build/*
 *.o
 *.swp
 *.pickle
-.ipynb_checkpoints/*-checkpoint.ipynb
+.ipynb_checkpoints/*checkpoint.ipynb
 *egg-info*
 *.pdf
 *.md5
@@ -16,5 +16,4 @@ build/*
 *.png
 *.map
 *.pyc
-.ipynb_checkpoints/Variances-checkpoint.ipynb
-__pycache__/cipher.cpython-39.pyc
+__pycache__/*
