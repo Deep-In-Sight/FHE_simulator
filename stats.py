@@ -29,7 +29,7 @@ class Statistics():
         mean = self.mean(ctxt, partial=True, duplicate=True)
         mean = algo.put_mask(mean, np.arange(ctxt._n_elements))
         sub = ev.sub(ctxt, mean)
-        squared = ev.mult(sub, sub, inplace=False)
+        squared = ev.mult(sub, sub, inplace=False) # Or, square()
         summed_sq = algo.sum_reduce(squared, partial=True, duplicate=False)
         return ev.div_by_plain(summed_sq, n)
 
