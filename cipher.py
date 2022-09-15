@@ -31,7 +31,7 @@ class Context():
         self._ring = ring
         self.enc_key = None
         self.generate_encryption_key()
-        pass
+        self.logq = self.params.logq # live logq
     
     def generate_encryption_key(self, n=10):
         """Fake"""

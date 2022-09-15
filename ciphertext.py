@@ -3,6 +3,51 @@ import numpy as np
 from errors import InvalidParamError
 from cipher import Parameters
 
+class Plaintext():
+    def __init__(self, arr=None, logp=None, logn=None, nslots=None):
+        if logp:
+            self.logp = logp
+        if logn and nslots:
+            assert 2**logn == nslots
+        elif logn:
+            nslots = 2**logn
+        elif nslots:
+            logn = int(np.log2(nslots))
+        
+        self.logn = logn 
+        self.nslots = nslots 
+        self._encrypted=None
+        if arr is not None:
+            self._set_arr(arr)
+
+    def _set_arr(self, arr, n_elements=None):
+        assert len(arr) <= self.nslots, "array longer than Nslots"
+
+        if not isinstance(arr, np.ndarray):
+            arr = np.array(arr)
+
+        if not np.issubdtype(arr.dtype, np.number):
+            print("Need a numeric type")
+            raise ValueError
+        else:
+            self._arr = np.zeros(self.nslots)
+            self._arr[:len(arr)] = arr
+        if n_elements is not None:
+            self._n_elements = n_elements
+        else:
+            self._n_elements = len(arr)
+
+        self._encrypted = False
+        
+    def __repr__(self):
+        if self._encrypted:
+            return("You can't read the content")
+        else:
+            if self._valid_slots:
+                return self._arr[self._valid_slots].__repr__()
+            else:
+                return self._arr.__repr__()       
+
 class Ciphertext():
     def __init__(self, *args, **kwargs):
         """Base class for any ciphertext
@@ -23,7 +68,7 @@ class Ciphertext():
         3. Ciphertext(30, 150, 12)
         4. Ciphertext(logp=30, logq=150, logn=12)
         """
-        self.logp = None
+
         self.logq = None
         self._logn = None
         self._nslots = None
