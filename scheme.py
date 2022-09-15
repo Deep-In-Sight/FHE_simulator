@@ -34,10 +34,12 @@ class Decryptor():
             raise ValueError("You have a wrong secret key")
             
 class Evaluator():
-    def __init__(self, keys:Dict):
+    def __init__(self, keys:Dict, context:Context):
         self._multiplication_key = keys['mult']
         self.rotation_keys = keys['rot']
         self.multkey_hash = key_hash(-1*self._multiplication_key)
+        self._logp = context.params.logp
+        self.context = context
 
     @staticmethod
     def copy(ctxt:CiphertextStat):
@@ -64,12 +66,13 @@ class Evaluator():
             return new_ctxt
 
     @staticmethod
-    def _add_plain(ctxt:Ciphertext, ptxt:float):
+    @check_compatible
+    def _add_plain(ctxt:Ciphertext, ptxt:Plaintext):
         """proxy for HEAAN.ring.addConst() and ring.addConstAndEqual()
         """
-        return ctxt._arr + ptxt
+        return ctxt._arr + ptxt._arr
         
-    def add_plain(self, ctxt:CiphertextStat, ptxt:float, inplace=False):
+    def add_plain(self, ctxt:CiphertextStat, ptxt:Plaintext, inplace=False):
         assert self.multkey_hash == ctxt._enckey_hash, "Eval key and Enc keys don't match"
         if inplace:
             ctxt._arr = self._add_plain(ctxt,ptxt)
@@ -95,12 +98,13 @@ class Evaluator():
             return new_ctxt
 
     @staticmethod
-    def _sub_plain(ctxt:Ciphertext, ptxt:float):
+    @check_compatible
+    def _sub_plain(ctxt:Ciphertext, ptxt:Plaintext):
         """proxy for HEAAN.ring.sub() and ring.subAndEqual1,2()
         """
-        return ctxt._arr - ptxt
+        return ctxt._arr - ptxt._arr
         
-    def sub_plain(self, ctxt:CiphertextStat, ptxt:float, inplace=False):
+    def sub_plain(self, ctxt:CiphertextStat, ptxt:Plaintext, inplace=False):
         assert self.multkey_hash == ctxt._enckey_hash, "Eval key and Enc key don't match"
         if inplace:
             ctxt._arr = self._sub_plain(ctxt, ptxt)
@@ -121,22 +125,27 @@ class Evaluator():
         assert self.multkey_hash == ctxt1._enckey_hash == ctxt2._enckey_hash, "Eval key and Enc keys don't match"        
         if inplace:
             ctxt1._arr = self._mult(ctxt1,ctxt2)
+            ctxt1.logp += ctxt2.logp
         else:
             new_ctxt = CiphertextStat(ctxt1)
             new_ctxt._set_arr(ctxt1._enckey_hash, self._mult(ctxt1,ctxt2))
+            new_ctxt.logp = ctxt1.logp + ctxt2.logp
             return new_ctxt
 
     @staticmethod
+    @check_compatible
     def _mult_by_plain(ctxt, ptxt):
-        return ctxt._arr * ptxt
+        return ctxt._arr * ptxt._arr
 
-    def mult_by_plain(self, ctxt, ptxt, inplace=False):
+    def mult_by_plain(self, ctxt:Ciphertext, ptxt:Plaintext, inplace=False):
         assert self.multkey_hash == ctxt._enckey_hash, "Eval key and Enc keys don't match"        
         if inplace:
             ctxt._arr = self._mult_by_plain(ctxt, ptxt)
+            ctxt.logp += ptxt.logp
         else:
             new_ctxt = CiphertextStat(ctxt)
             new_ctxt._set_arr(ctxt._enckey_hash, self._mult_by_plain(ctxt, ptxt))
+            new_ctxt.logp = ctxt.logp + ptxt.logp
             return new_ctxt
 
     @staticmethod
@@ -150,9 +159,11 @@ class Evaluator():
         assert self.multkey_hash == ctxt._enckey_hash, "Eval key and Enc key don't match"        
         if inplace:
             ctxt._arr = self._square(ctxt)
+            ctxt.logp *=2
         else:
             new_ctxt = CiphertextStat(ctxt)
             new_ctxt._set_arr(ctxt._enckey_hash, self._sqaure(ctxt))
+            new_ctxt.logp = ctxt.logp * 2
             return new_ctxt
 
 
@@ -185,17 +196,39 @@ class Evaluator():
     def div_by_plain(self, ctxt, ptxt):
         return self.mult_by_plain(ctxt, 1./ptxt)
 
+    def _reduce_logq(self, delta):
+        self.context.logq -= delta
+
+    def rescale_next(self, ctxt:Ciphertext):
+        """lower ctxt's scale by default scale"""
+        delta = self._logp
+        ctxt.logp -= delta
+        self._reduce_logq(delta)
+
+    def rescale_to(self, ctxt1:Ciphertext, ctxt2:Ciphertext):
+        assert ctxt1.logp > ctxt2.logp, "can't raise ctxt's scale"
+        delta = ctxt1.logp - ctxt2.logp
+        ctxt1.logp -= delta
+        self._reduce_logq(delta)        
     
 def _stringify(arr):
     """convert array elements to a string"""
     return [str(a) for a in arr]
 
-def Encoder():
-    def __init__(self):
-        pass
+class Encoder():
+    def __init__(self, context):
+        self.logp = context.params.logp
+        self.nslots = context.params.nslots
 
-    def encode(self, arr):
-        return self._stringify(arr)
+    def encode(self, arr, logp=None, nslots=None):
+        if logp:
+            self.logp = logp
+        if nslots:
+            self.nstlos = nslots
+
+        assert(self.logp != None), 'Ptxt scale not set'
+
+        return Plaintext(arr=arr, logp = self.logp, nslots = self.nslots)
 
 
 

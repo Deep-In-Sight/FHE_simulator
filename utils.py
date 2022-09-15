@@ -16,10 +16,13 @@ def secret_key_match_encryptor_key(enc, sk):
     """키 pair를 conjigate로 만들자! 
     """
     return key_hash(sk) == key_hash(enc)
-   
+
+
+### Decorator
 def check_compatible(func):
     def func_wrapper(*args, **kwargs):
-        #print(args)
+        """also applies to ptxt
+        """
         ctxt1, ctxt2 = args
         if ctxt1.logp == ctxt2.logp:
             return func(*args, **kwargs)
