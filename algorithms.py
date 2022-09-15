@@ -1,7 +1,7 @@
 import numpy as np
 
-from ciphertext import CiphertextStat
-from scheme import Evaluator
+from ciphertext import CiphertextStat, Plaintext
+from scheme import Evaluator, Encoder
 
 # class Mask():
 #     def __init__(self, beg, fin, stride):
@@ -17,8 +17,14 @@ from scheme import Evaluator
 
 
 class Algorithms():
-    def __init__(self, evaluator:Evaluator):
+    def __init__(self, evaluator:Evaluator, encoder=Encoder):
         self.evaluator = evaluator
+        self.encoder = encoder
+        self._nslots = self.evaluator.context.params.nslots
+
+    def encode_repeat(self, v, logp=None):
+        return self.encoder.encode(np.repeat(v, self._nslots),
+                            logp=logp)
 
     def sum_reduce(self,
                     ctxt:CiphertextStat, 
@@ -87,6 +93,8 @@ class Algorithms():
 
         _mask = np.zeros(ctxt.nslots)
         _mask[mask] = 1
+        _mask = self.encoder.encode(_mask)
+
         if inplace:
             ev.mult_by_plain(ctxt, _mask, inplace=True)
         else:

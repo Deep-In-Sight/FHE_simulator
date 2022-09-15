@@ -4,6 +4,7 @@ from cipher import *
 from ciphertext import *
 from errors import *
 from utils import *
+from copy import copy
 
 class Encryptor():
     def __init__(self, context:Context):
@@ -193,23 +194,29 @@ class Evaluator():
             new_ctxt._set_arr(ctxt._enckey_hash, self._leftrot(ctxt, r))
             return new_ctxt
 
-    def div_by_plain(self, ctxt, ptxt):
-        return self.mult_by_plain(ctxt, 1./ptxt)
-
-    def _reduce_logq(self, delta):
-        self.context.logq -= delta
+    def div_by_plain(self, ctxt, ptxt, inplace=False):
+        inv_ptxt = copy(ptxt)
+        inv_ptxt._arr = 1./inv_ptxt._arr
+        if inplace:
+            self.mult_by_plain(ctxt, inv_ptxt, inplace=inplace)
+        else:
+            return self.mult_by_plain(ctxt, inv_ptxt, inplace=inplace)
+    @staticmethod
+    def _reduce_logq(ctxt, delta):
+        ctxt.logq -= delta
+        assert ctxt.logq > 0, "no more noise budget! do bootstrapping"
 
     def rescale_next(self, ctxt:Ciphertext):
         """lower ctxt's scale by default scale"""
         delta = self._logp
         ctxt.logp -= delta
-        self._reduce_logq(delta)
+        self._reduce_logq(ctxt, delta)
 
     def rescale_to(self, ctxt1:Ciphertext, ctxt2:Ciphertext):
         assert ctxt1.logp > ctxt2.logp, "can't raise ctxt's scale"
         delta = ctxt1.logp - ctxt2.logp
         ctxt1.logp -= delta
-        self._reduce_logq(delta)        
+        self._reduce_logq(ctxt1, delta)        
     
 def _stringify(arr):
     """convert array elements to a string"""
