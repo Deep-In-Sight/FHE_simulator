@@ -95,7 +95,7 @@ class Ciphertext():
                       "try Ciphertext(logp, logq, logn)")
         
         if self.logp is not None or self.logq is not None or self.logn is not None:
-            self._varify_params()
+            self._verify_params()
     
     @property
     def logn(self):
@@ -131,7 +131,7 @@ class Ciphertext():
     def __init_with_tuple(self, *arg):
         self.logp, self.logq, self.logn = arg
         
-    def _varify_params(self):
+    def _verify_params(self):
         """Todo"""
         if False:
             raise InvalidParamError

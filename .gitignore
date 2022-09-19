@@ -6,7 +6,7 @@ build/*
 *.o
 *.swp
 *.pickle
-.ipynb_checkpoints/*checkpoint.ipynb
+*checkpoint.ipynb
 *egg-info*
 *.pdf
 *.md5
