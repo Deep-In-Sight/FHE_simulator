@@ -160,6 +160,19 @@ class Algorithms():
         new_ctxt._arr = self._sign(ctxt._arr)
         return new_ctxt
 
+    def sign_ranged(self, ctxt, range):
+        """calculate sign of variables in a non-standard range.
+
+        accounting for scaling factor in generating the fitting function is cheaper 
+        than multiplying ctxt with a plaintext.
+        """
+        new_ctxt = CiphertextStat(ctxt)
+
+        #### TODO ####
+        #poly_eval로 계산해야함!!!!!!!!!!!!!!!!!
+        new_ctxt._arr = self._sign(ctxt._arr)
+        return new_ctxt
+
     def comp(self, ctxt1:Ciphertext, oper2):
         """sign 두 번 composite
         """
@@ -172,7 +185,7 @@ class Algorithms():
         half = Plaintext(arr=np.repeat(.5, diff.nslots),
                      logp = diff.logp, nslots = diff.nslots)
         sign_plus1 = self.evaluator.add_plain(self.sign(self.sign(diff)), one)
-        return self.evaluator.mult_by_plain(sign_plus1,half)
+        return self.evaluator.mult_by_plain(sign_plus1, half)
 
     def _powerExtended(self, ctxt:CiphertextStat,degree:int):
         """
