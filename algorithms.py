@@ -2,7 +2,7 @@ import numpy as np
 from numpy import polynomial as P
 import math 
 
-from ciphertext import CiphertextStat, Plaintext
+from ciphertext import Ciphertext, CiphertextStat, Plaintext
 from scheme import Evaluator, Encoder
 
 # class Mask():
@@ -153,26 +153,26 @@ class Algorithms():
 
 ################# comp #################
     def sign(self, ctxt):
-        new_ctxt = CiphertextStat(logp=ctxt.logp, 
-                                  logq=ctxt.logq, 
-                                  logn=ctxt.logn)
+        new_ctxt = CiphertextStat(ctxt)
 
         #### TODO ####
         #poly_eval로 계산해야함!!!!!!!!!!!!!!!!!
         new_ctxt._arr = self._sign(ctxt._arr)
         return new_ctxt
 
-    def comp_c(self, ctxt1, ctxt2):
+    def comp(self, ctxt1:Ciphertext, oper2):
         """sign 두 번 composite
         """
-        diff = self.evaluator.sub(ctxt1, ctxt2)
-        return 1/2*(self.sign(self.sign(diff))+1)
-
-    def comp_p(self, ctxt, ptxt):
-        """sign 두 번 composite
-        """
-        diff = self.evaluator.sub_plain(ctxt, ptxt)
-        return 1/2*(self.sign(self.sign(diff))+1)
+        if isinstance(oper2, Ciphertext):
+            diff = self.evaluator.sub(ctxt1, oper2)
+        elif isinstance(oper2, Plaintext):
+            diff = self.evaluator.sub_plain(ctxt1, oper2)
+        one = Plaintext(arr=np.repeat(1., diff.nslots),
+                     logp = diff.logp, nslots = diff.nslots)
+        half = Plaintext(arr=np.repeat(.5, diff.nslots),
+                     logp = diff.logp, nslots = diff.nslots)
+        sign_plus1 = self.evaluator.add_plain(self.sign(self.sign(diff)), one)
+        return self.evaluator.mult_by_plain(sign_plus1,half)
 
     def _powerExtended(self, ctxt:CiphertextStat,degree:int):
         """
