@@ -3,23 +3,51 @@ import numpy as np
 from errors import InvalidParamError
 from cipher import Parameters
 
-class Plaintext():
-    def __init__(self, arr=None, logp=None, logn=None, nslots=None):
+class CipherABC():
+    def __init__(self, logp:int=None, logn:int=None, nslots:int=None):
         if logp:
             self.logp = logp
         if logn and nslots:
             assert 2**logn == nslots
-        elif logn:
-            nslots = 2**logn
-        elif nslots:
-            logn = int(np.log2(nslots))
-        
-        self.logn = logn 
-        self.nslots = nslots 
+        if logn:
+            self.logn = logn 
+        if nslots:
+            self.nslots = nslots 
+
+    @property
+    def logn(self):
+        """automatically update on changing logn"""
+        return self._logn
+
+    @logn.setter
+    def logn(self, val):
+        self._logn = val
+        self._nslots = 2**self._logn
+
+    @property
+    def nslots(self):
+        return self._nslots
+
+    @nslots.setter
+    def nslots(self, val):
+        self._nslots = val
+        # TODO: need to deal with inexact nslots
+        self._logn = int(np.log2(self._nslots))
+
+class Plaintext(CipherABC):
+    """
+    Plaintext의 logp는 미리 정해질 필요 없음. 
+    ptxt는 대부분 mult_p 혹은 add_p를 위한 임시 변수이므로, 
+    계산에 참여하는 ctxt의 ctxt.logp를 받으면 충분함.
+    """
+    def __init__(self, arr=None, logp=None, logn=None, nslots=None):
+        super().__init__(logp=logp, logn=logn, nslots=nslots)
+        assert logn or nslots, "Please specify logn or nslots"
+
         self._encrypted=None
         if arr is not None:
             self._set_arr(arr)
-
+    
     def _set_arr(self, arr, n_elements=None):
         assert len(arr) <= self.nslots, "array longer than Nslots"
 
@@ -39,16 +67,8 @@ class Plaintext():
 
         self._encrypted = False
         
-    def __repr__(self):
-        if self._encrypted:
-            return("You can't read the content")
-        else:
-            if self._valid_slots:
-                return self._arr[self._valid_slots].__repr__()
-            else:
-                return self._arr.__repr__()       
 
-class Ciphertext():
+class Ciphertext(CipherABC):
     def __init__(self, *args, **kwargs):
         """Base class for any ciphertext
         Currently following the CKKS convention -> should be changed.
@@ -96,27 +116,6 @@ class Ciphertext():
         
         if self.logp is not None or self.logq is not None or self.logn is not None:
             self._verify_params()
-    
-    @property
-    def logn(self):
-        """automatically update on changing logn"""
-        return self._logn
-
-    @logn.setter
-    def logn(self, val):
-        self._logn = val
-        self._nslots = 2**self._logn
-
-    @property
-    def nslots(self):
-        return self._nslots
-
-    @nslots.setter
-    def nslots(self, val):
-        self._nslots = val
-        # TODO: need to deal with inexact nslots
-        self._logn = int(np.log2(self._nslots))
-
         
     def __init_with_ctxt__(self, ctxt):
         self.logp = ctxt.logp
@@ -188,3 +187,5 @@ class CiphertextStat(Ciphertext):
             else:
                 return self._arr.__repr__()
 
+    def __len__(self):
+        return self.nslots
