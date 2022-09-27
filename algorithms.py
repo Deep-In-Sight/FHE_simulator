@@ -1,4 +1,6 @@
 import numpy as np
+from numpy import polynomial as P
+import math 
 
 from ciphertext import CiphertextStat, Plaintext
 from scheme import Evaluator, Encoder
@@ -21,6 +23,7 @@ class Algorithms():
         self.evaluator = evaluator
         self.encoder = encoder
         self._nslots = self.evaluator.context.params.nslots
+        self._sign = self._approx_sign(10)
 
     def encode_repeat(self, v, logp=None):
         return self.encoder.encode(np.repeat(v, self._nslots),
@@ -150,7 +153,26 @@ class Algorithms():
 
 ################# comp #################
     def sign(self, ctxt):
-        pass
+        new_ctxt = CiphertextStat(logp=ctxt.logp, 
+                                  logq=ctxt.logq, 
+                                  logn=ctxt.logn)
+
+        #### TODO ####
+        #poly_eval로 계산해야함!!!!!!!!!!!!!!!!!
+        new_ctxt._arr = self._sign(ctxt._arr)
+        return new_ctxt
+
+    def comp_c(self, ctxt1, ctxt2):
+        """sign 두 번 composite
+        """
+        diff = self.evaluator.sub(ctxt1, ctxt2)
+        return 1/2*(self.sign(self.sign(diff))+1)
+
+    def comp_p(self, ctxt, ptxt):
+        """sign 두 번 composite
+        """
+        diff = self.evaluator.sub_plain(ctxt, ptxt)
+        return 1/2*(self.sign(self.sign(diff))+1)
 
     def _powerExtended(self, ctxt:CiphertextStat,degree:int):
         """
@@ -160,3 +182,23 @@ class Algorithms():
     def eval_poly(self, ctxt:CiphertextStat, coeff:list, tol=1e-6):
         pass
 
+    @staticmethod
+    def _approx_sign(n):
+        """
+        Approxiate sign function in [-1,1]
+        """
+        p_t1 = P.Polynomial([1,0,-1])
+        p_x  = P.Polynomial([0,1])
+        
+        def c_(i: int):
+            return 1/4**i * math.comb(2*i,i)
+
+        def term_(i: int):
+            return c_(i) * p_x * p_t1**i
+
+        poly = term_(0)
+        for nn in range(1,n+1):
+            poly += term_(nn)
+        return poly
+
+    
