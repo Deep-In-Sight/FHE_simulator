@@ -74,7 +74,7 @@ class Evaluator():
         return ctxt._arr + ptxt._arr
         
     def add_plain(self, ctxt:CiphertextStat, ptxt:Plaintext, inplace=False):
-        assert self.multkey_hash == ctxt._enckey_hash, "Eval key and Enc keys don't match"
+        #assert self.multkey_hash == ctxt._enckey_hash, "Eval key and Enc keys don't match"
         if inplace:
             ctxt._arr = self._add_plain(ctxt,ptxt)
         else:
@@ -106,7 +106,7 @@ class Evaluator():
         return ctxt._arr - ptxt._arr
         
     def sub_plain(self, ctxt:CiphertextStat, ptxt:Plaintext, inplace=False):
-        assert self.multkey_hash == ctxt._enckey_hash, "Eval key and Enc key don't match"
+        #assert self.multkey_hash == ctxt._enckey_hash, "Eval key and Enc key don't match"
         if inplace:
             ctxt._arr = self._sub_plain(ctxt, ptxt)
         else:
@@ -139,7 +139,7 @@ class Evaluator():
         return ctxt._arr * ptxt._arr
 
     def mult_by_plain(self, ctxt:Ciphertext, ptxt:Plaintext, inplace=False):
-        assert self.multkey_hash == ctxt._enckey_hash, "Eval key and Enc keys don't match"        
+        #assert self.multkey_hash == ctxt._enckey_hash, "Eval key and Enc keys don't match"        
         if inplace:
             ctxt._arr = self._mult_by_plain(ctxt, ptxt)
             ctxt.logp += ptxt.logp
