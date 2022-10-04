@@ -22,7 +22,7 @@ class Statistics():
         https://en.wikipedia.org/wiki/Algorithms_for_calculating_variance
 
         notably, there're online versions (which don't apply to SIMD setting),
-        and paralle/distributed versions (very probably relevant to us)
+        and parallel/distributed versions (probably relevant to us)
         """
         ev = self.evaluator
         algo = self.algorithms
