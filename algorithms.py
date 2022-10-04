@@ -31,9 +31,11 @@ class Algorithms():
 
     def sum_reduce(self,
                     ctxt:CiphertextStat, 
+                    nsum=None,
                     partial=False, 
                     duplicate=False): 
-        """calculate sum of all elements in the array.
+        """calculate sum of **nsum** elements in the array.
+        => sum([0, nsum]), sum([1, nsum+1]), ...
 
 
         Use cases
@@ -66,11 +68,12 @@ class Algorithms():
             raise ValueError("Partial = False, duplicate = True not allowed.")
         ev = self.evaluator
 
-        if partial:
-            n = ctxt._n_elements
-        else:
-            n = ctxt.nslots
-        log2n = np.log2(n).astype(int)
+        if not nsum:
+            if partial:
+                nsum = ctxt._n_elements
+            else:
+                nsum = ctxt.nslots
+        log2n = np.log2(nsum).astype(int)
 
         # keep the original ctxt intact
         ctxt_ = ev.copy(ctxt)
@@ -103,7 +106,7 @@ class Algorithms():
         else:
             return ev.mult_by_plain(ctxt, _mask, inplace=False)
 
-    def inv(self, ctxt:CiphertextStat, number:float=1e-4, n_iters=20):
+    def inv(self, ctxt:Ciphertext, number:float=1e-4, n_iters=20):
         """Division by Newton-Raphson method.
         https://en.wikipedia.org/wiki/Division_algorithm#Newton%E2%80%93Raphson_division
 
@@ -131,6 +134,20 @@ class Algorithms():
             ev.mult(number_, sub_, inplace=True)
 
         return number_
+
+    def divide(self, ctxt1:Ciphertext, ctxt2:Ciphertext,  inplace=False):
+        """Fake implementation"""
+        ev = self.evaluator
+        if not inplace:
+            new_ctxt = ev.copy(ctxt1)
+        else:
+            new_ctxt = ctxt1
+        
+        new_ctxt._arr /= ctxt2._arr
+
+        return new_ctxt
+        
+
 
 ################# SQRT #################
     def _inv_sqrt_initial_guess(self, n_iter, tol):
