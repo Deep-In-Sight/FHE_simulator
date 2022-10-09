@@ -17,8 +17,7 @@ def sumslots(ctxt, m, p):
 def swap(tensor):
     """(ci,hi,wi) to (hi,wi,ci)"""
     if tensor.ndim == 3:
-        swapped = np.swapaxes(tensor,0,1)
-        swapped = np.swapaxes(swapped,1,2)
+        swapped = tensor.transpose(1,2,0)
     elif tensor.ndim == 4:
         swapped = np.swapaxes(tensor,0,3)
         swapped = np.swapaxes(swapped,1,2)
