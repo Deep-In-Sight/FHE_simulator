@@ -2,21 +2,8 @@ import numpy as np
 from numpy import polynomial as P
 import math 
 
-from ciphertext import Ciphertext, CiphertextStat, Plaintext
-from scheme import Evaluator, Encoder
-
-# class Mask():
-#     def __init__(self, beg, fin, stride):
-#         """Flexible mask class
-        
-#         Need to devise a concise and effective pattern generation method
-#         -- Like numpy Slice Tile tensor. 
-#         """
-#         self.beg = beg
-#         self.fin = fin
-#         self.stride = stride
-
-
+from .ciphertext import Ciphertext, CiphertextStat, Plaintext
+from .scheme import Evaluator, Encoder
 
 class Algorithms():
     def __init__(self, evaluator:Evaluator, encoder=Encoder):

@@ -1,5 +1,5 @@
-from cipher import *
-from scheme import *
+from .cipher import *
+from .scheme import *
 
 def set_all(logp, logq, logn):
     myring = Ring(seed=1234)

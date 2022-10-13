@@ -1,9 +1,9 @@
 from typing import Dict
 import numpy as np
-from cipher import *
-from ciphertext import *
-from errors import *
-from utils import *
+from .cipher import *
+from .ciphertext import *
+from .errors import *
+from .utils import *
 from copy import copy
 
 class Encryptor():

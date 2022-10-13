@@ -1,7 +1,7 @@
 from logging.config import valid_ident
 import numpy as np
-from errors import InvalidParamError
-from cipher import Parameters
+from .errors import InvalidParamError
+from .cipher import Parameters
 
 class CipherABC():
     def __init__(self, logp:int=None, logn:int=None, nslots:int=None):
@@ -33,6 +33,9 @@ class CipherABC():
         self._nslots = val
         # TODO: need to deal with inexact nslots
         self._logn = int(np.log2(self._nslots))
+
+    def __len__(self):
+        return self.nslots
 
 class Plaintext(CipherABC):
     """
@@ -186,6 +189,3 @@ class CiphertextStat(Ciphertext):
                 return self._arr[self._valid_slots].__repr__()
             else:
                 return self._arr.__repr__()
-
-    def __len__(self):
-        return self.nslots

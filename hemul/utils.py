@@ -1,6 +1,6 @@
 import numbers
-from ciphertext import CiphertextStat
-from errors import ScaleMisMatchError, LengthMisMatchError
+from .ciphertext import CiphertextStat
+from .errors import ScaleMisMatchError, LengthMisMatchError
 import numpy as np
 """
 HEAAN's Ciphertext class has two construtors.
