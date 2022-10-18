@@ -42,6 +42,19 @@ class Evaluator():
         self._logp = context.params.logp
         self.context = context
 
+    def bootstrap(self, ctxt:Ciphertext):
+        ctxt.logq = self.context.logq - ctxt.logp
+
+    def negate(self, ctxt:Ciphertext, inplace=True):
+        if inplace:
+            ctxt._arr = -1*ctxt._arr
+            return ctxt
+        else:
+            new_ctxt = self.copy(ctxt)
+            new_ctxt._arr = -1*new_ctxt._arr
+            return new_ctxt
+        
+
     @staticmethod
     def copy(ctxt:CiphertextStat):
         """copy a ciphertextStat instance"""
