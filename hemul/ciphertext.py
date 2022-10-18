@@ -69,6 +69,7 @@ class Plaintext(CipherABC):
             self._n_elements = len(arr)
 
         self._encrypted = False
+        self._ntt = False
         
 
 class Ciphertext(CipherABC):
@@ -121,6 +122,7 @@ class Ciphertext(CipherABC):
             self._verify_params()
         
     def __init_with_ctxt__(self, ctxt):
+        """create a new ciphertext with the same properties as ctxt"""
         self.logp = ctxt.logp
         self.logq = ctxt.logq
         self.logn = ctxt.logn
