@@ -109,17 +109,25 @@ class Algorithms():
         """
         ev = self.evaluator
 
-        # In the first iteration, number is ptxt
-        q_ = ev.mult_by_plain(ctxt, -number, inplace=False)
-        sub_ = ev.add_plain(q_, 2, inplace=False)
+        number = self.encode_repeat(number)
+        two = self.encode_repeat(2)
+        
+        q_ = ev.mult_by_plain(ctxt, number, inplace=False)
+        ev.rescale_next(q_)
+        sub_ = ev.add_plain(q_, two, inplace=False)
         number_ = ev.mult_by_plain(sub_, number, inplace=False)
-
+        ev.rescale_next(number_)
+        
         for i in range(1, n_iters):
-            tmp = ev.mult_by_plain(number_, -1, inplace=False)
+            tmp = ev.negate(number_, inplace=False)
             q_ = ev.mult(ctxt, tmp, inplace=False)
-            sub_ = ev.add_plain(q_, 2, inplace=False)
+            ev.rescale_next(q_)
+            sub_ = ev.add_plain(q_, two, inplace=False)
             ev.mult(number_, sub_, inplace=True)
-
+            ev.rescale_next(number_)
+            if number_.logq < 2*number_.logp:
+                ev.bootstrap(number_)
+                print("Bootstrapping...")
         return number_
 
     def divide(self, ctxt1:Ciphertext, ctxt2:Ciphertext,  inplace=False):
