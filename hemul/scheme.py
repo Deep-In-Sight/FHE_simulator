@@ -53,7 +53,21 @@ class Evaluator():
             new_ctxt = self.copy(ctxt)
             new_ctxt._arr = -1*new_ctxt._arr
             return new_ctxt
-        
+
+    @staticmethod
+    def mod_down_by(ctxt:Ciphertext, logp):
+        assert ctxt.logp > logp, "Cannot mod down any further"
+        ctxt.logq -= logp
+
+    @staticmethod
+    def mod_down_to(ctxt:Ciphertext, logq):
+        assert ctxt.logq >= logq, "Cannot mod down to a higher level"
+        ctxt.logq = logq
+
+    @staticmethod
+    def match_mod(ctxt1:Ciphertext, ctxt2:Ciphertext):
+        ctxt2.logq = min([ctxt1.logq, ctxt2.logq])
+        ctxt1.logq = ctxt2.logq
 
     @staticmethod
     def copy(ctxt:CiphertextStat):
