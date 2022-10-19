@@ -9,6 +9,60 @@ HEAAN's Ciphertext class has two construtors.
 
 """
 
+class Call_counter():
+    """Count function call and store their parameters
+        for later cost analysis.
+    """
+    def __init__(self):
+        self.reset()
+
+    def reset(self):
+        self._multp = []
+        self._multc = []
+        self._rot = []
+        self._bootstrap = []
+        self._mod_switch =[]
+        self._rescale = []
+        self._ntt_switch = []
+
+    def get(self):
+        return {"multp":self._multp,
+                "multc":self._multc,
+                "rot":self._rot,
+                "bootstrap":self._bootstrap,
+                "mod_switch":self._mod_switch,
+                "rescale":self._rescale,
+                "ntt_switch":self._ntt_switch}
+
+    @staticmethod
+    def _get_props(ctxt):
+        return {"logq":ctxt.logq, 
+                "logp":ctxt.logp,
+                "logn":ctxt.logn,
+                "ntt":int(ctxt._ntt)}
+                
+    def ntt_switch(self, ctxt):
+        self._ntt_switch.append(self._get_props(ctxt))
+
+    def rescale(self, ctxt):
+        self._rescale.append(self._get_props(ctxt))
+
+    def multp(self, ctxt):
+        self._multp.append(self._get_props(ctxt))
+
+    def multc(self, ctxt):
+        self._multc.append(self._get_props(ctxt))
+
+    def rot(self, ctxt):
+        self._rot.append(self._get_props(ctxt))
+
+    def bootstrap(self, ctxt):
+        self._bootstrap.append(self._get_props(ctxt))
+
+    def mod_switch(self, ctxt):
+        self._mod_switch.append(self._get_props(ctxt))
+
+
 def key_hash(key):
     return hash(str(key*np.conj(key)))
 

@@ -41,9 +41,11 @@ class Evaluator():
         self.multkey_hash = key_hash(-1*self._multiplication_key)
         self._logp = context.params.logp
         self.context = context
+        self._counter = Call_counter()
 
     def bootstrap(self, ctxt:Ciphertext):
         ctxt.logq = self.context.logq - ctxt.logp
+        self._counter.bootstrap(ctxt)
 
     def negate(self, ctxt:Ciphertext, inplace=True):
         if inplace:
@@ -54,20 +56,24 @@ class Evaluator():
             new_ctxt._arr = -1*new_ctxt._arr
             return new_ctxt
 
-    @staticmethod
-    def mod_down_by(ctxt:Ciphertext, logp):
-        assert ctxt.logp > logp, "Cannot mod down any further"
-        ctxt.logq -= logp
-
-    @staticmethod
-    def mod_down_to(ctxt:Ciphertext, logq):
-        assert ctxt.logq >= logq, "Cannot mod down to a higher level"
+    def _change_mod(self, ctxt:Ciphertext, logq):
+        """
+        proxy for Scheme.change_mod
+        """
         ctxt.logq = logq
+        self._counter.mod_switch(ctxt)
 
-    @staticmethod
-    def match_mod(ctxt1:Ciphertext, ctxt2:Ciphertext):
-        ctxt2.logq = min([ctxt1.logq, ctxt2.logq])
-        ctxt1.logq = ctxt2.logq
+    def mod_down_by(self, ctxt:Ciphertext, logp):
+        assert ctxt.logp > logp, "Cannot mod down any further"
+        self._change_mod(ctxt, ctxt.logq - logp)
+
+    def mod_down_to(self, ctxt:Ciphertext, logq):
+        assert ctxt.logq >= logq, "Cannot mod down to a higher level"
+        self._change_mod(ctxt, logq)
+
+    def match_mod(self, ctxt1:Ciphertext, ctxt2:Ciphertext):
+        self._change_mod(ctxt2, min([ctxt1.logq, ctxt2.logq]))
+        self._change_mod(ctxt1, ctxt2.logq)
 
     @staticmethod
     def copy(ctxt:CiphertextStat):
@@ -142,11 +148,15 @@ class Evaluator():
             return new_ctxt
         
 
-    @staticmethod
-    @check_compatible
-    def _mult(ctxt1:Ciphertext, ctxt2:Ciphertext):
+    def _mult(self, ctxt1:Ciphertext, ctxt2:Ciphertext):
         """
         """
+        if not ctxt1._ntt:
+            self.switch_ntt(ctxt1)
+        if not ctxt2._ntt:
+            self.switch_ntt(ctxt2)        
+
+        self._counter.multc(ctxt1)
         return ctxt1._arr * ctxt2._arr
         
     def mult(self, ctxt1, ctxt2, inplace=False):
@@ -154,33 +164,36 @@ class Evaluator():
         if inplace:
             ctxt1._arr = self._mult(ctxt1,ctxt2)
             ctxt1.logp += ctxt2.logp
+            
         else:
             new_ctxt = CiphertextStat(ctxt1)
             new_ctxt._set_arr(ctxt1._enckey_hash, self._mult(ctxt1,ctxt2))
             new_ctxt.logp = ctxt1.logp + ctxt2.logp
             return new_ctxt
 
-    @staticmethod
-    @check_compatible
-    def _mult_by_plain(ctxt, ptxt):
+    def _mult_by_plain(self, ctxt, ptxt):
+        self._counter.multp(ctxt)
         return ctxt._arr * ptxt._arr
 
     def mult_by_plain(self, ctxt:Ciphertext, ptxt:Plaintext, inplace=False):
         #assert self.multkey_hash == ctxt._enckey_hash, "Eval key and Enc keys don't match"        
         if inplace:
             ctxt._arr = self._mult_by_plain(ctxt, ptxt)
-            ctxt.logp += ptxt.logp
+            ctxt.logp += ptxt.logp            
         else:
             new_ctxt = CiphertextStat(ctxt)
             new_ctxt._set_arr(ctxt._enckey_hash, self._mult_by_plain(ctxt, ptxt))
             new_ctxt.logp = ctxt.logp + ptxt.logp
             return new_ctxt
 
-    @staticmethod
-    def _square(ctxt:Ciphertext):
+    def _square(self, ctxt:Ciphertext):
         """
         proxy for Scheme.square
         """
+        if not ctxt._ntt:
+            self.switch_ntt(ctxt)
+
+        self._counter.multc(ctxt)
         return ctxt._arr**2
         
     def square(self, ctxt, inplace=False):
@@ -194,12 +207,15 @@ class Evaluator():
             new_ctxt.logp = ctxt.logp * 2
             return new_ctxt
 
-
-    @staticmethod
-    def _leftrot(ctxt:Ciphertext, r:int):
+    def _leftrot(self, ctxt:Ciphertext, r:int):
         """
         """
+        self._counter.rot(ctxt)
         return np.roll(ctxt._arr, -r)
+    
+    def switch_ntt(self, ctxt:Ciphertext):
+        ctxt._ntt = not ctxt._ntt
+        self._counter.ntt_switch(ctxt)
         
     def lrot(self, ctxt:CiphertextStat, r:int, inplace=True):
         """Left-rotate ciphertext.
@@ -213,6 +229,8 @@ class Evaluator():
         assert self.multkey_hash == ctxt._enckey_hash, "Eval key and Enc key don't match"
         
         # TODO: assert rotation_key exists
+        if ctxt._ntt:
+            self.switch_ntt(ctxt)
 
         if inplace:
             ctxt._arr = self._leftrot(ctxt, r)
@@ -228,10 +246,11 @@ class Evaluator():
             self.mult_by_plain(ctxt, inv_ptxt, inplace=inplace)
         else:
             return self.mult_by_plain(ctxt, inv_ptxt, inplace=inplace)
-    @staticmethod
-    def _reduce_logq(ctxt, delta):
+    
+    def _reduce_logq(self, ctxt, delta):
         ctxt.logq -= delta
         assert ctxt.logq > 0, "no more noise budget! do bootstrapping"
+        self._counter.rescale(ctxt)
 
     def rescale_next(self, ctxt:Ciphertext):
         """lower ctxt's scale by default scale"""
@@ -245,10 +264,6 @@ class Evaluator():
         ctxt1.logp -= delta
         self._reduce_logq(ctxt1, delta)        
     
-def _stringify(arr):
-    """convert array elements to a string"""
-    return [str(a) for a in arr]
-
 class Encoder():
     def __init__(self, context):
         self.logp = context.params.logp

@@ -69,7 +69,6 @@ class Plaintext(CipherABC):
             self._n_elements = len(arr)
 
         self._encrypted = False
-        self._ntt = False
         
 
 class Ciphertext(CipherABC):
@@ -96,6 +95,7 @@ class Ciphertext(CipherABC):
         self.logq = None
         self._logn = None
         self._nslots = None
+        self._ntt = False
         self.level = 0
         
         if len(args) == 1:
