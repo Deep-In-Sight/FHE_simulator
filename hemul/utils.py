@@ -1,6 +1,6 @@
 import numbers
-from ciphertext import CiphertextStat
-from errors import ScaleMisMatchError, LengthMisMatchError
+from .ciphertext import CiphertextStat, Plaintext
+from .errors import ScaleMisMatchError, LengthMisMatchError
 import numpy as np
 """
 HEAAN's Ciphertext class has two construtors.
@@ -24,9 +24,17 @@ def check_compatible(func):
         """also applies to ptxt
         """
         ctxt1, ctxt2 = args
-        if ctxt1.logp == ctxt2.logp:
+        goodp = ctxt1.logp == ctxt2.logp
+        if isinstance(ctxt2, Plaintext):
+            goodq = True
+        else:
+            goodq = ctxt1.logq == ctxt2.logq
+        
+        if goodp and goodq: 
             return func(*args, **kwargs)
         else:
+            if not goodp: print(f"ctxt1.logp: {ctxt1.logp}, ctxt2.logp: {ctxt2.logp}")
+            if not goodq: print(f"ctxt1.logq: {ctxt1.logq}, ctxt2.logq: {ctxt2.logq}")
             raise ScaleMisMatchError
     return func_wrapper
 

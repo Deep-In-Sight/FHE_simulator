@@ -1,9 +1,9 @@
 from typing import Dict
 import numpy as np
-from cipher import *
-from ciphertext import *
-from errors import *
-from utils import *
+from .cipher import *
+from .ciphertext import *
+from .errors import *
+from .utils import *
 from copy import copy
 
 class Encryptor():
@@ -41,6 +41,33 @@ class Evaluator():
         self.multkey_hash = key_hash(-1*self._multiplication_key)
         self._logp = context.params.logp
         self.context = context
+
+    def bootstrap(self, ctxt:Ciphertext):
+        ctxt.logq = self.context.logq - ctxt.logp
+
+    def negate(self, ctxt:Ciphertext, inplace=True):
+        if inplace:
+            ctxt._arr = -1*ctxt._arr
+            return ctxt
+        else:
+            new_ctxt = self.copy(ctxt)
+            new_ctxt._arr = -1*new_ctxt._arr
+            return new_ctxt
+
+    @staticmethod
+    def mod_down_by(ctxt:Ciphertext, logp):
+        assert ctxt.logp > logp, "Cannot mod down any further"
+        ctxt.logq -= logp
+
+    @staticmethod
+    def mod_down_to(ctxt:Ciphertext, logq):
+        assert ctxt.logq >= logq, "Cannot mod down to a higher level"
+        ctxt.logq = logq
+
+    @staticmethod
+    def match_mod(ctxt1:Ciphertext, ctxt2:Ciphertext):
+        ctxt2.logq = min([ctxt1.logq, ctxt2.logq])
+        ctxt1.logq = ctxt2.logq
 
     @staticmethod
     def copy(ctxt:CiphertextStat):
@@ -150,20 +177,20 @@ class Evaluator():
             return new_ctxt
 
     @staticmethod
-    def _sqaure(ctxt:Ciphertext):
+    def _square(ctxt:Ciphertext):
         """
         proxy for Scheme.square
         """
         return ctxt._arr**2
         
-    def sqaure(self, ctxt, inplace=False):
+    def square(self, ctxt, inplace=False):
         assert self.multkey_hash == ctxt._enckey_hash, "Eval key and Enc key don't match"        
         if inplace:
             ctxt._arr = self._square(ctxt)
             ctxt.logp *=2
         else:
             new_ctxt = CiphertextStat(ctxt)
-            new_ctxt._set_arr(ctxt._enckey_hash, self._sqaure(ctxt))
+            new_ctxt._set_arr(ctxt._enckey_hash, self._square(ctxt))
             new_ctxt.logp = ctxt.logp * 2
             return new_ctxt
 
