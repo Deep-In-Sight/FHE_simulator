@@ -1,6 +1,6 @@
 import numpy as np
-from scheme import Evaluator, Encoder
-from algorithms import Algorithms
+from .scheme import Evaluator, Encoder
+from .algorithms import Algorithms
 
 class Statistics():
     def __init__(self, evaluator:Evaluator, encoder:Encoder):
