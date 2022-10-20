@@ -1,5 +1,4 @@
 import numpy as np
-from ciphertext import Ciphertext, Plaintext, CiphertextStat
 from scheme import Evaluator, Encoder
 from algorithms import Algorithms
 
@@ -14,7 +13,6 @@ class Statistics():
         self.encoder = encoder
         self.algorithms = Algorithms(self.evaluator, self.encoder)
         
-
     def variance(self, ctxt):
         """
 
@@ -88,8 +86,7 @@ class Statistics():
 
         n = algo.encode_repeat(ctxt._n_elements)
         summed = algo.sum_reduce(ctxt, partial=partial, duplicate=duplicate)
-        return ev.div_by_plain(summed, n)
-        
+        return ev.div_by_plain(summed, n)     
 
     def cov(self, ctxt1, ctxt2):
         """
@@ -153,3 +150,606 @@ class Statistics():
         algo = self.algorithms
         
         return ev.mult(self.variance(ctxt), algo.inv(self.mean(ctxt)))
+
+    def min(self, ctxt):
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+        ctxt
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+        pass
+    
+    def max(self, ctxt):
+
+
+
+
+
+
+
+
+
+
+        ctxt
+
+
+
+
+
+
+
+
+
+
+
+
+        pass 
+
+    def skewness(self, ctxt):
+
+
+
+
+
+
+
+
+
+
+
+
+        ctxt
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+        pass
+
+    def kurtosis(self, ctxt):
+
+
+        
+
+
+
+
+
+
+
+
+        ctxt
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+        pass
+
+    def chi_square(self, ctxt):
+
+        ctxt
+
+        def _row_for_mult(row_sum, ntot, ng1, ng2, nslots, debug=False):
+            # ng1 < ng2
+            each_element=[]
+            for i in range(ng1):
+                mask = np.zeros(nslots)
+                mask[i*ng2] = 1/ntot
+                row_tmp = ev.mult_by_plain(row_sum, encoder.encode(mask), inplace=False)
+                each_element.append(row_tmp)
+
+            # check
+            if debug:
+                for ee in each_element:
+                    print(ee._arr[:10])
+
+            result = each_element[0]
+            for ee in each_element[1:]:
+                ev.add(result, ee, inplace=True)
+
+            # check
+            if debug: print(result._arr[:10])
+
+            for i in range(int(sqrt(ng2))):
+                r_tmp = ev.copy(result)
+                ev.lrot(r_tmp, -2**i)
+                ev.add(result, r_tmp, inplace=True)
+                # check
+                if debug: print(result._arr[:10])
+            return result
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+        pass
+
+    def pearson(self, ctxt1, ctxt2):
+
+
+
+
+        ctxt1 
+
+        ctxt2
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+        pass
+
+    
+class Regression():
+    """
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+    """
+
+class PCA():
+    """
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    """
+    def __init__(self):
+        pass 
+
+    def _set_something(self, cfg):
+        pass 
+
+
+class DT():
+    """
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+    """
+    def __init__(self):
+        pass 
+
+    def _set_something(self, cfg):
+        pass
+
+class RF(DT):
+    """
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    """
+    def __init__(self):
+        pass 
+
+    def _set_something(self, cfg):
+        pass
+
+
+class Sequential():
+    """
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    """
+    def __init__(self):
+        pass 
+
+    def _set_something(self, cfg):
+        pass
+
