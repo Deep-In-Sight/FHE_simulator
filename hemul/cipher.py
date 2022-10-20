@@ -23,7 +23,11 @@ class Ring():
         
         """
         # random_number_generator
-        self.rng = np.random.default_rng(seed)
+        major, minor, sub = np.__version__.split(".")
+        if int(minor) <= 16:
+            self.rng = np.random
+        else:
+            self.rng = np.random.default_rng(seed)
 
 class Context():
     def __init__(self, params:Parameters, ring:Ring):

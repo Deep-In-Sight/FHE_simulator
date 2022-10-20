@@ -141,8 +141,6 @@ class Algorithms():
         new_ctxt._arr /= ctxt2._arr
 
         return new_ctxt
-        
-
 
 ################# SQRT #################
     def _inv_sqrt_initial_guess(self, n_iter, tol):
