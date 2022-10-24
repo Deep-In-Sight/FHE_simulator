@@ -1,5 +1,5 @@
 import torch
-from heconv import *
+from hemul.heconv import *
 import matplotlib.pyplot as plt 
 from PIL import Image
 import torchvision.transforms as transforms
