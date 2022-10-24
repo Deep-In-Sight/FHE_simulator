@@ -2,21 +2,8 @@ import numpy as np
 from numpy import polynomial as P
 import math 
 
-from ciphertext import Ciphertext, CiphertextStat, Plaintext
-from scheme import Evaluator, Encoder
-
-# class Mask():
-#     def __init__(self, beg, fin, stride):
-#         """Flexible mask class
-        
-#         Need to devise a concise and effective pattern generation method
-#         -- Like numpy Slice Tile tensor. 
-#         """
-#         self.beg = beg
-#         self.fin = fin
-#         self.stride = stride
-
-
+from .ciphertext import Ciphertext, CiphertextStat, Plaintext
+from .scheme import Evaluator, Encoder
 
 class Algorithms():
     def __init__(self, evaluator:Evaluator, encoder=Encoder):
@@ -31,9 +18,11 @@ class Algorithms():
 
     def sum_reduce(self,
                     ctxt:CiphertextStat, 
+                    nsum=None,
                     partial=False, 
                     duplicate=False): 
-        """calculate sum of all elements in the array.
+        """calculate sum of **nsum** elements in the array.
+        => sum([0, nsum]), sum([1, nsum+1]), ...
 
 
         Use cases
@@ -66,11 +55,12 @@ class Algorithms():
             raise ValueError("Partial = False, duplicate = True not allowed.")
         ev = self.evaluator
 
-        if partial:
-            n = ctxt._n_elements
-        else:
-            n = ctxt.nslots
-        log2n = np.log2(n).astype(int)
+        if not nsum:
+            if partial:
+                nsum = ctxt._n_elements
+            else:
+                nsum = ctxt.nslots
+        log2n = np.log2(nsum).astype(int)
 
         # keep the original ctxt intact
         ctxt_ = ev.copy(ctxt)
@@ -103,7 +93,7 @@ class Algorithms():
         else:
             return ev.mult_by_plain(ctxt, _mask, inplace=False)
 
-    def inv(self, ctxt:CiphertextStat, number:float=1e-4, n_iters=20):
+    def inv(self, ctxt:Ciphertext, number:float=1e-4, n_iters=20):
         """Division by Newton-Raphson method.
         https://en.wikipedia.org/wiki/Division_algorithm#Newton%E2%80%93Raphson_division
 
@@ -119,18 +109,38 @@ class Algorithms():
         """
         ev = self.evaluator
 
-        # In the first iteration, number is ptxt
-        q_ = ev.mult_by_plain(ctxt, -number, inplace=False)
-        sub_ = ev.add_plain(q_, 2, inplace=False)
+        number = self.encode_repeat(number)
+        two = self.encode_repeat(2)
+        
+        q_ = ev.mult_by_plain(ctxt, number, inplace=False)
+        ev.rescale_next(q_)
+        sub_ = ev.add_plain(q_, two, inplace=False)
         number_ = ev.mult_by_plain(sub_, number, inplace=False)
-
+        ev.rescale_next(number_)
+        
         for i in range(1, n_iters):
-            tmp = ev.mult_by_plain(number_, -1, inplace=False)
+            tmp = ev.negate(number_, inplace=False)
             q_ = ev.mult(ctxt, tmp, inplace=False)
-            sub_ = ev.add_plain(q_, 2, inplace=False)
+            ev.rescale_next(q_)
+            sub_ = ev.add_plain(q_, two, inplace=False)
             ev.mult(number_, sub_, inplace=True)
-
+            ev.rescale_next(number_)
+            if number_.logq < 2*number_.logp:
+                ev.bootstrap(number_)
+                print("Bootstrapping...")
         return number_
+
+    def divide(self, ctxt1:Ciphertext, ctxt2:Ciphertext,  inplace=False):
+        """Fake implementation"""
+        ev = self.evaluator
+        if not inplace:
+            new_ctxt = ev.copy(ctxt1)
+        else:
+            new_ctxt = ctxt1
+        
+        new_ctxt._arr /= ctxt2._arr
+
+        return new_ctxt
 
 ################# SQRT #################
     def _inv_sqrt_initial_guess(self, n_iter, tol):

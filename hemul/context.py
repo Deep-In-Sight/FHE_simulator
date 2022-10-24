@@ -1,9 +1,9 @@
-from cipher import *
-from scheme import *
+from .cipher import *
+from .scheme import *
 
 def set_all(logp, logq, logn):
     myring = Ring(seed=1234)
-    parms = Parameters(logp = 30, logq = 150, logn = 12)
+    parms = Parameters(logp = logp, logq = logq, logn = logn)
     nslots = 2**parms.logn
     context = Context(parms, myring)
 
