@@ -1,6 +1,4 @@
-from decimal import MIN_EMIN
 import numpy as np
-from math import sqrt, ceil
 from numpy import polynomial as P
 
 # degrees from i=1 to k
