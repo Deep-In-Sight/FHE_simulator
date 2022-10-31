@@ -3,11 +3,12 @@ from matplotlib import pyplot as plt
 import math
 from PIL import Image
 import cv2
+from icecream import ic
 #############
 #   Utils   #
 #############
 
-def imshow_with_value(data):
+def imshow_with_value(data,pt):
     if (len(data.shape))==3:
         h,w,c = data.shape
         channel = {'R':0,'G':1,'B':2}
@@ -19,12 +20,42 @@ def imshow_with_value(data):
     for i in range(h):
         for j in range(w):
             if (len(data.shape)==3):
-                text = ax.text(j, i, data[i, j, channel['R']], ha="center", va="center", color="w")
+                if pt==0:
+                    text = ax.text(j, i, int(data[i, j, channel['R']]), ha="center", va="center", color="w")
+                else:
+                    text = ax.text(j, i, np.round(data[i, j, channel['R']],pt), ha="center", va="center", color="w")
             else:
-                text = ax.text(j, i, data[i, j], ha="center", va="center", color="w")  
+                if pt==0:
+                    text = ax.text(j, i, int(data[i, j]), ha="center", va="center", color="w")  
+                else:
+                    text = ax.text(j, i, np.round(data[i, j],pt), ha="center", va="center", color="w")  
                 
 def calculate_nrots(fh,fw,co,ki,ti):
     return fh*fw-1 + co*(2*np.floor(np.log2(ki)) +np.floor(np.log2(ti))+ 1) 
+def count_ones(mat):
+    count=0
+    h,w = mat.shape
+    for i in range(h):
+        for j in range(w):
+            if mat[i,j]==1:
+                count=count+1
+    return count
+
+
+def get_sparse_matrix(h,w,m,p):
+    out = np.zeros([h,w])
+    for i in range(0,h,p):
+        for j in range(0,w,p):
+            for k in range(m):
+                out[i,j+k] = 1 
+    return out
+def get_p(nslots,h,w,k,t):
+    exp = np.floor(np.log2(nslots/(h*w*t*k**2)))
+    return 2**exp
+
+def get_q(co,pi):
+    return np.ceil(co/pi)
+
 def get_k_and_t(c):
     k = 1
     while(1):
@@ -34,31 +65,6 @@ def get_k_and_t(c):
             break
     t = np.ceil(c/k**2)
     return k,int(t)
-
-def print_2d(M):
-    h,w = M.shape
-    for i in range(h):
-        line = ""
-        for j in range(w):
-            line = line+str(M[i][j])+" "
-        print (line)
-        
-def print_obj(A,channel_last=True):
-    ndim = len(A.shape)
-    if ndim==2:
-        print_2d(A)
-    elif ndim==3:
-        y,x,z = A.shape
-        dtype = A.dtype
-        out = np.zeros([z,y,x])
-        for k in range(z):
-            for i in range(y):
-                for j in range(x):
-                    out[k][i][j] = A[i][j][k]
-        for i in range(z):
-            print_2d(out[i])
-            print("-------------------------------")
-
 
 def get_channel_first(U):
     dim=U.shape
@@ -78,6 +84,24 @@ def get_channel_first(U):
                 for j in range(w):
                     out[z,i,j] = U[i,j,z]
     return out
+#def get_channel_last(U):
+#    dim=U.shape
+#    if len(dim)==4:
+#        co,ci,h,w = U.shape
+#        out = np.zeros([h,w,ci,co])
+#        for l in range(co):
+#            for k in range(ci):
+#                for j in range(w):
+#                    for i in range(h):
+#                        out[i,j,k,l]=U[l,k,j,i]
+#    elif len(dim)==3:
+#        c,h,w = U.shape
+#        out = np.zeros([h,w,c])
+#        for k in range(c):
+#            for j in range(w):
+#                for i in range(h):
+#                    out[i,j,k] = U[k,j,i]
+#    return out
 
 def get_channel_last(U):
     dim=U.shape
@@ -98,40 +122,122 @@ def get_channel_last(U):
                     out[i,j,z] = U[z,i,j]
     return out
 
+        
+        
+#############################
+#  kernels that do nothing  #
+#############################
+def create_U(fh,fw,ci,co):
+    U = np.zeros([fh,fw,ci,co])
+    for l in range(co):
+        for k in range(ci):
+            for i in range(fh):
+                for j in range(fw):
+                    if i==1 and j==1:
+                        U[i,j,k,l]=1
+    #ic(U.shape)
+    return U
+def create_U_select(fh,fw,ci,co,kname):
+    U = np.zeros([fh,fw,ci,co])
+    sharpen=np.array([[ 0,-1, 0],[-1, 5,-1],[ 0,-1, 0]])
+    dummy=np.array([[ 0, 0, 0],[0, 1, 0],[ 0, 0, 0]])
+    blur=np.dot(np.array([[ 1, 1, 1],[1, 1, 1],[ 1, 1, 1]]),1/9)
+    select = {"sharpen":sharpen,"dummy":dummy,"blur":blur}
+    kernel = select[kname]
+    for l in range(co):
+        for k in range(ci):
+            for i in range(fh):
+                for j in range(fw):
+                    U[i,j,k,l]=kernel[i,j]
+    #ic(U.shape)
+    return U
 
-################
-#  unpack()    #
-################
-def unpack(ct,ha,wa,ca):
-    ka,ta = get_k_and_t(ca)
-    print(ka,ta)
-    fh,fw= 3,3
-    ch=[]
-    for k in range(ka**2):
-        mat=[]
-        for i in range(ha):
-            iflat = i*wa*ka**2
-            row = []
-            for j in range(wa):
-                jflat = j*ka + k%ka + int(np.floor(k/ka)*ka*wa)
-                row.append(ct[iflat+jflat])
-            mat.append(row)
-        ch.append(mat)
-    return np.array(ch)
-def pack(A):
-    A = get_channel_last(A)
-    ha,wa,ca = A.shape
-    ka,ta    = get_k_and_t(ca)
-    print(f"----------------{ha},{wa},{ca}")
-    print(f"----------------{ka},{ta}")
-    out = np.zeros([ka*ha,ka*wa,ta])
-    for i3 in range(ka*ha):
-        for i4 in range(ka*wa):
-            for i5 in range(int(ta)):
-                cond = (ka**2)*i5 + ka*(i3%ka)+(i4%ka)
-                if cond<ca:
-                    idx_1st = int(np.floor(i3/ka))
-                    idx_2nd = int(np.floor(i4/ka))
-                    idx_3rd = int((ka**2)*i5+ka*(i3%ka)+i4%ka)
-                    out[i3][i4][i5] = A[idx_1st][idx_2nd][idx_3rd]
-    return out
+
+
+#############################
+#  image                    #
+#############################
+def create_img(ins=[],isFromFile=True):
+    hi,wi,ci,ki,ti,pi = ins[0],ins[1],ins[2],ins[3],ins[4],ins[5]
+    if isFromFile is True:
+        img = cv2.resize(cv2.imread("cute.jpg"),(hi,wi))
+        temp = list(get_channel_first(img))
+        while(1):
+            if len(temp)>=ci:
+                break
+            temp.append(np.ones([hi,wi]))
+        #ic(np.array(temp).shape)
+        img = get_channel_last(np.array(temp))
+    else:
+        img = np.zeros([hi,wi,ci])
+        for i in range(hi):
+            for j in range(wi):
+                for k in range(ci):
+                    img[i,j,k] = 100*(i+1)+10*(j+1)+(k+1)
+    return img
+
+def create_img_single(ins=[],isFromFile=True):
+    hi,wi,ci,ki,ti,pi = ins[0],ins[1],ins[2],ins[3],ins[4],ins[5]
+    ic(ci)
+    if isFromFile is True:
+        img = cv2.resize(cv2.imread("cute.jpg"),(hi,wi))
+        temp = [list(get_channel_first(img)[0])]
+
+        while(1):
+            if len(temp)>=ci:
+                break
+            temp.append(np.ones([hi,wi]))
+        #ic(np.array(temp).shape)
+        img = get_channel_last(np.array(temp))
+    else:
+        img = np.zeros([hi,wi,ci])
+        for i in range(hi):
+            for j in range(wi):
+                for k in range(ci):
+                    img[i,j,k] = 100*(i+1)+10*(j+1)+(k+1)
+    for i in range(hi):
+        for j in range(wi):
+            for k in range(1,ci):
+                img[i,j,k]=0
+    return img
+
+def create_img_identical(ins=[],isFromFile=True):
+    hi,wi,ci,ki,ti,pi = ins[0],ins[1],ins[2],ins[3],ins[4],ins[5]
+    if isFromFile is True:
+        img = cv2.resize(cv2.imread("cute.jpg"),(hi,wi))
+        temp = list(get_channel_first(img))
+        while(1):
+            if len(temp)>=ci:
+                break
+            temp.append(np.ones([hi,wi]))
+        #ic(np.array(temp).shape)
+        img = get_channel_last(np.array(temp))
+    else:
+        img = np.zeros([hi,wi,ci])
+        for i in range(hi):
+            for j in range(wi):
+                for k in range(ci):
+                    img[i,j,k] = 100*(i+1)+10*(j+1)+(k+1)
+    for i in range(hi):
+        for j in range(wi):
+            for k in range(1,ci):
+                img[i,j,k]=img[i,j,0]
+    return img
+#################################
+#  Dimensions , ins, outs,pi,po #
+#################################
+def get_dims(hi,wi,ci,ki,ti,ho,wo,co,ko,to,nslots=2**15):
+    pi = get_p(nslots,hi,wi,ki,ti)
+    po = get_p(nslots,ho,wo,ko,to)
+    ins =  [hi,wi,ci,ki,ti,pi]
+    outs = [ho,wo,co,ko,to,po]
+    return pi,ins,po,outs
+
+def get_dims_p_assigned(hi,wi,ci,ki,ti,pi,ho,wo,co,ko,to,po,nslots=2**15):
+    #pi = get_p(nslots,hi,wi,ki,ti)
+    #po = get_p(nslots,ho,wo,ko,to)
+    ins =  [hi,wi,ci,ki,ti,pi]
+    outs = [ho,wo,co,ko,to,po]
+    return ins,outs
+
+        

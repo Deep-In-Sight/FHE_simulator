@@ -4,7 +4,6 @@ import torchvision.transforms as transforms
 from torch.utils.data.sampler import SubsetRandomSampler
 from torch import nn
 import torch.nn.functional as F
-from approximate import approx_relu, approx_sign
 import numpy as np
 
 class ConvNeuralNet(nn.Module):
@@ -55,7 +54,6 @@ def get_test_model(train=False):
     batch_size = 32
     valid_size = 0.2
 
-    activation = lambda x : xfactor * approx_relu(x/xfactor, degree = 5, repeat=3)
     org_model = ConvNeuralNet(num_classes=10, activation=F.relu) # F.relu가 아니고..??
 
     if train:
