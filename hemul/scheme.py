@@ -13,7 +13,7 @@ class Encryptor():
         self.enckey_hash = key_hash(self._enc_key)
     
     def encrypt(self, arr):
-        # How to determine if I want Ciphertext of CiphertextStat?
+        # How to determine if I want Ciphertext or CiphertextStat?
         ctxt = CiphertextStat(self._context.params.logp, 
                               self._context.params.logq,
                               self._context.params.logn)
@@ -64,7 +64,7 @@ class Evaluator():
         self._counter.mod_switch(ctxt)
 
     def mod_down_by(self, ctxt:Ciphertext, logp):
-        assert ctxt.logp > logp, "Cannot mod down any further"
+        assert ctxt.logq > logp, "Cannot mod down any further"
         self._change_mod(ctxt, ctxt.logq - logp)
 
     def mod_down_to(self, ctxt:Ciphertext, logq):
@@ -175,14 +175,21 @@ class Evaluator():
         self._counter.multp(ctxt)
         return ctxt._arr * ptxt._arr
 
-    def mult_by_plain(self, ctxt:Ciphertext, ptxt:Plaintext, inplace=False):
+    def mult_by_plain(self, ctxt:CiphertextStat, ptxt:Plaintext, inplace=False):
         #assert self.multkey_hash == ctxt._enckey_hash, "Eval key and Enc keys don't match"        
         if inplace:
             ctxt._arr = self._mult_by_plain(ctxt, ptxt)
             ctxt.logp += ptxt.logp            
         else:
+            #print("ctxt", ctxt.logp, ctxt.logn, ctxt._arr, ctxt.nslots)
+            #print("ctxt", ctxt)
             new_ctxt = CiphertextStat(ctxt)
-            new_ctxt._set_arr(ctxt._enckey_hash, self._mult_by_plain(ctxt, ptxt))
+            #print("new_ctxt", new_ctxt.logp, new_ctxt.logq, new_ctxt.logn, new_ctxt.nslots)
+            #print("ptxt", ptxt.logp, ptxt.logn)
+            #print(ptxt)
+            tmp = self._mult_by_plain(ctxt, ptxt)
+            #print("tmp", tmp)
+            new_ctxt._set_arr(ctxt._enckey_hash, tmp)
             new_ctxt.logp = ctxt.logp + ptxt.logp
             return new_ctxt
 

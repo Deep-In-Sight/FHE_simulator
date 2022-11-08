@@ -91,7 +91,8 @@ class Ciphertext(CipherABC):
         3. Ciphertext(30, 150, 12)
         4. Ciphertext(logp=30, logq=150, logn=12)
         """
-
+        super().__init__()
+        self.logp = None
         self.logq = None
         self._logn = None
         self._nslots = None
@@ -120,12 +121,18 @@ class Ciphertext(CipherABC):
         
         if self.logp is not None or self.logq is not None or self.logn is not None:
             self._verify_params()
+
+        if 'arr' in kwargs.keys():
+            self._set_arr(kwargs['arr'])
+        else:
+            self._arr = np.zeros(self.nslots)
         
     def __init_with_ctxt__(self, ctxt):
         """create a new ciphertext with the same properties as ctxt"""
         self.logp = ctxt.logp
         self.logq = ctxt.logq
         self.logn = ctxt.logn
+        #print(ctxt.logp, ctxt.logq, ctxt.logn)
         
     def __init_with_parmeters(self, parms):
         self.logp = parms['logp']
@@ -163,6 +170,8 @@ class CiphertextStat(Ciphertext):
         self._max = None
         self._mean = None
         self._enckey_hash = None
+        self._encrypted = True
+        self._valid_slots = None
     
     def _set_arr(self, enckey_hash, arr, n_elements=None):
         assert len(arr) <= self.nslots, "array longer than Nslots"
