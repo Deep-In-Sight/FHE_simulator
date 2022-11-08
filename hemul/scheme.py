@@ -6,6 +6,22 @@ from .errors import *
 from .utils import *
 from copy import copy
 
+class Encoder():
+    def __init__(self, context):
+        self.logp = context.params.logp
+        self.nslots = context.params.nslots
+
+    def encode(self, arr, logp=None, nslots=None):
+        if logp:
+            self.logp = logp
+        if nslots:
+            self.nstlos = nslots
+
+        assert(self.logp != None), 'Ptxt scale not set'
+
+        return Plaintext(arr=arr, logp = self.logp, nslots = self.nslots)
+
+
 class Encryptor():
     def __init__(self, context:Context):
         self._context = context
@@ -33,7 +49,26 @@ class Decryptor():
             return ctxt._arr
         else:
             raise ValueError("You have a wrong secret key")
-            
+
+@staticmethod
+def create_new_ctxt(ctxt):
+    newctxt = CiphertextStat(logp = ctxt.logp,
+                        logq = ctxt.logq,
+                        logn = ctxt.logn)
+    
+    newctxt._enckey_hash = ctxt._enckey_hash
+    return newctxt
+
+@staticmethod
+def copy_ctxt(ctxt:CiphertextStat):
+    """copy a ciphertextStat instance"""
+    new_ctxt = create_new_ctxt(ctxt)
+    new_ctxt._set_arr(ctxt._enckey_hash, ctxt._arr, 
+                        n_elements=ctxt._n_elements)
+    new_ctxt._encrypted = ctxt._encrypted
+    new_ctxt._n_elements = ctxt._n_elements
+    return new_ctxt
+
 class Evaluator():
     def __init__(self, keys:Dict, context:Context):
         self._multiplication_key = keys['mult']
@@ -42,6 +77,9 @@ class Evaluator():
         self._logp = context.params.logp
         self.context = context
         self._counter = Call_counter()
+
+    def copy(self, ctxt):
+        return copy_ctxt(ctxt)
 
     def bootstrap(self, ctxt:Ciphertext):
         ctxt.logq = self.context.logq - ctxt.logp
@@ -63,9 +101,14 @@ class Evaluator():
         ctxt.logq = logq
         self._counter.mod_switch(ctxt)
 
-    def mod_down_by(self, ctxt:Ciphertext, logp):
+    def mod_down_by(self, ctxt:Ciphertext, logp, inplace=True):
         assert ctxt.logq > logp, "Cannot mod down any further"
-        self._change_mod(ctxt, ctxt.logq - logp)
+        if inplace:
+            self._change_mod(ctxt, ctxt.logq - logp)
+        else:
+            new_ctxt = self.copy(ctxt)
+            self._change_mod(new_ctxt, ctxt.logq - logp)
+            return new_ctxt
 
     def mod_down_to(self, ctxt:Ciphertext, logq):
         assert ctxt.logq >= logq, "Cannot mod down to a higher level"
@@ -74,14 +117,6 @@ class Evaluator():
     def match_mod(self, ctxt1:Ciphertext, ctxt2:Ciphertext):
         self._change_mod(ctxt2, min([ctxt1.logq, ctxt2.logq]))
         self._change_mod(ctxt1, ctxt2.logq)
-
-    @staticmethod
-    def copy(ctxt:CiphertextStat):
-        """copy a ciphertextStat instance"""
-        new_ctxt = CiphertextStat(ctxt)
-        new_ctxt._set_arr(ctxt._enckey_hash, ctxt._arr, 
-                          n_elements=ctxt._n_elements)
-        return new_ctxt
 
     @staticmethod
     @check_compatible
@@ -95,7 +130,7 @@ class Evaluator():
         if inplace:
             ctxt1._arr = self._add(ctxt1,ctxt2)
         else:
-            new_ctxt = CiphertextStat(ctxt1)
+            new_ctxt = create_new_ctxt(ctxt1)
             new_ctxt._set_arr(ctxt1._enckey_hash, self._add(ctxt1,ctxt2))
             return new_ctxt
 
@@ -106,12 +141,14 @@ class Evaluator():
         """
         return ctxt._arr + ptxt._arr
         
-    def add_plain(self, ctxt:CiphertextStat, ptxt:Plaintext, inplace=False):
+    def add_plain(self, ctxt:CiphertextStat, ptxt:Plaintext, logp=None, inplace=False):
         #assert self.multkey_hash == ctxt._enckey_hash, "Eval key and Enc keys don't match"
+        if not isinstance(ptxt, Plaintext) and logp is not None:
+            ptxt = Plaintext(arr=np.repeat(ptxt, ctxt.nslots), logn=ctxt.logn, logp=logp)
         if inplace:
             ctxt._arr = self._add_plain(ctxt,ptxt)
         else:
-            new_ctxt = CiphertextStat(ctxt)
+            new_ctxt = create_new_ctxt(ctxt)
             new_ctxt._set_arr(ctxt._enckey_hash, self._add_plain(ctxt,ptxt))
             return new_ctxt
 
@@ -127,7 +164,7 @@ class Evaluator():
         if inplace:
             ctxt1._arr = self._sub(ctxt1,ctxt2)
         else:
-            new_ctxt = CiphertextStat(ctxt1)
+            new_ctxt = create_new_ctxt(ctxt1)
             new_ctxt._set_arr(ctxt1._enckey_hash, self._sub(ctxt1,ctxt2))
             return new_ctxt
 
@@ -143,7 +180,7 @@ class Evaluator():
         if inplace:
             ctxt._arr = self._sub_plain(ctxt, ptxt)
         else:
-            new_ctxt = CiphertextStat(ctxt)
+            new_ctxt = create_new_ctxt(ctxt)
             new_ctxt._set_arr(ctxt._enckey_hash, self._sub_plain(ctxt, ptxt))
             return new_ctxt
         
@@ -166,7 +203,7 @@ class Evaluator():
             ctxt1.logp += ctxt2.logp
             
         else:
-            new_ctxt = CiphertextStat(ctxt1)
+            new_ctxt = create_new_ctxt(ctxt1)
             new_ctxt._set_arr(ctxt1._enckey_hash, self._mult(ctxt1,ctxt2))
             new_ctxt.logp = ctxt1.logp + ctxt2.logp
             return new_ctxt
@@ -175,21 +212,16 @@ class Evaluator():
         self._counter.multp(ctxt)
         return ctxt._arr * ptxt._arr
 
-    def mult_by_plain(self, ctxt:CiphertextStat, ptxt:Plaintext, inplace=False):
+    def mult_by_plain(self, ctxt:CiphertextStat, ptxt:Plaintext, logp=None, inplace=False):
         #assert self.multkey_hash == ctxt._enckey_hash, "Eval key and Enc keys don't match"        
+        if not isinstance(ptxt, Plaintext) and logp is not None:
+            ptxt = Plaintext(arr=np.repeat(ptxt, ctxt.nslots), logn=ctxt.logn, logp=logp)
         if inplace:
             ctxt._arr = self._mult_by_plain(ctxt, ptxt)
             ctxt.logp += ptxt.logp            
         else:
-            #print("ctxt", ctxt.logp, ctxt.logn, ctxt._arr, ctxt.nslots)
-            #print("ctxt", ctxt)
-            new_ctxt = CiphertextStat(ctxt)
-            #print("new_ctxt", new_ctxt.logp, new_ctxt.logq, new_ctxt.logn, new_ctxt.nslots)
-            #print("ptxt", ptxt.logp, ptxt.logn)
-            #print(ptxt)
-            tmp = self._mult_by_plain(ctxt, ptxt)
-            #print("tmp", tmp)
-            new_ctxt._set_arr(ctxt._enckey_hash, tmp)
+            new_ctxt = create_new_ctxt(ctxt)
+            new_ctxt._arr = self._mult_by_plain(ctxt, ptxt)
             new_ctxt.logp = ctxt.logp + ptxt.logp
             return new_ctxt
 
@@ -209,7 +241,7 @@ class Evaluator():
             ctxt._arr = self._square(ctxt)
             ctxt.logp *=2
         else:
-            new_ctxt = CiphertextStat(ctxt)
+            new_ctxt = create_new_ctxt(ctxt)
             new_ctxt._set_arr(ctxt._enckey_hash, self._square(ctxt))
             new_ctxt.logp = ctxt.logp * 2
             return new_ctxt
@@ -242,7 +274,7 @@ class Evaluator():
         if inplace:
             ctxt._arr = self._leftrot(ctxt, r)
         else:
-            new_ctxt = CiphertextStat(ctxt)
+            new_ctxt = create_new_ctxt(ctxt)
             new_ctxt._set_arr(ctxt._enckey_hash, self._leftrot(ctxt, r))
             return new_ctxt
 
@@ -271,20 +303,56 @@ class Evaluator():
         ctxt1.logp -= delta
         self._reduce_logq(ctxt1, delta)        
     
-class Encoder():
-    def __init__(self, context):
-        self.logp = context.params.logp
-        self.nslots = context.params.nslots
-
-    def encode(self, arr, logp=None, nslots=None):
-        if logp:
-            self.logp = logp
-        if nslots:
-            self.nstlos = nslots
-
-        assert(self.logp != None), 'Ptxt scale not set'
-
-        return Plaintext(arr=arr, logp = self.logp, nslots = self.nslots)
+    def rescale_by(self, ctxt:Ciphertext, delta):
+        assert ctxt.logp > delta, "can't raise ctxt's scale"
+        ctxt.logp -= delta
+        self._reduce_logq(ctxt, delta)
 
 
+    def powerOf2Extended(self, ctxt:Ciphertext, logp, logDegree):
+        res = [self.copy(ctxt)]
+        for i in range(1, logDegree+1):
+            res.append(self.square(res[-1]))
+            self.rescale_by(res[-1], logp)
+        
+        return res
 
+    def powerExtended(self, ctxt:Ciphertext, logp, degree):
+        logDegree = np.log2(degree).astype(int)
+        cpows = self.powerOf2Extended(ctxt, logp, logDegree)
+        
+        res = []
+        for i in range(logDegree):
+            powi = 1 << i
+            res.append(self.copy(cpows[i]))
+            for j in range(powi-1):
+                bitsDown = res[j].logq - cpows[i].logq
+                res.append(self.mod_down_by(res[j], bitsDown, inplace=False))
+                self.mult(res[-1], cpows[i], inplace=True)
+                self.rescale_by(res[-1], logp)
+                
+        res.append(self.copy(cpows[logDegree]))
+        degree2 = 1 << logDegree
+        for i in range(degree - degree2):
+            bitsDown = res[i].logq - cpows[logDegree].logq
+            res.append(self.mod_down_by(res[i], bitsDown, inplace=False))
+            self.mult(res[-1], cpows[logDegree], inplace=True)
+            self.rescale_by(res[-1], logp)
+        
+        return res
+            
+    def function_poly(self, ctxt, coeffs, logp):
+        degree = len(coeffs) - 1
+        cpows = self.powerExtended(ctxt, logp, degree)
+        dlogp = 2*logp
+        res = self.mult_by_plain(cpows[0], coeffs[1], logp, inplace=False)
+        self.add_plain(res, coeffs[0], dlogp, inplace=True)
+        
+        for i in range(1, degree):
+            if abs(coeffs[i+1]) > 1e-20:
+                aixi = self.mult_by_plain(cpows[i], coeffs[i+1], logp)
+                self.mod_down_to(res, aixi.logq)
+                self.add(res, aixi, inplace=True)
+        
+        self.rescale_by(res, logp)
+        return res 
