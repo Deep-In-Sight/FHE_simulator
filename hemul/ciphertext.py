@@ -45,14 +45,15 @@ class Plaintext(CipherABC):
     """
     def __init__(self, arr=None, logp=None, logn=None, nslots=None):
         super().__init__(logp=logp, logn=logn, nslots=nslots)
-        assert logn or nslots, "Please specify logn or nslots"
+        assert logn or nslots or arr is not None, "Please specify logn or nslots"
 
         self._encrypted=None
         if arr is not None:
             self._set_arr(arr)
     
     def _set_arr(self, arr, n_elements=None):
-        assert len(arr) <= self.nslots, "array longer than Nslots"
+        if self.nslots is not None:
+            assert len(arr) <= self.nslots, "array longer than Nslots"
 
         if not isinstance(arr, np.ndarray):
             arr = np.array(arr)
@@ -174,7 +175,8 @@ class CiphertextStat(Ciphertext):
         self._valid_slots = None
     
     def _set_arr(self, enckey_hash, arr, n_elements=None):
-        assert len(arr) <= self.nslots, "array longer than Nslots"
+        if self.nslots is not None:
+            assert len(arr) <= self.nslots, "array longer than Nslots"
 
         if not isinstance(arr, np.ndarray):
             arr = np.array(arr)

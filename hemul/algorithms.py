@@ -10,7 +10,6 @@ class Algorithms():
         self.evaluator = evaluator
         self.encoder = encoder
         self._nslots = self.evaluator.context.params.nslots
-        self._sign = self._approx_sign(10)
 
     def encode_repeat(self, v, logp=None):
         return self.encoder.encode(np.repeat(v, self._nslots),
@@ -162,27 +161,6 @@ class Algorithms():
         return ev.mult(ctxt, self.inv_sqrt(ctxt), inplace=False)
 
 ################# comp #################
-    def sign(self, ctxt):
-        new_ctxt = CiphertextStat(ctxt)
-
-        #### TODO ####
-        #poly_eval로 계산해야함!!!!!!!!!!!!!!!!!
-        new_ctxt._arr = self._sign(ctxt._arr)
-        return new_ctxt
-
-    def sign_ranged(self, ctxt, range):
-        """calculate sign of variables in a non-standard range.
-
-        accounting for scaling factor in generating the fitting function is cheaper 
-        than multiplying ctxt with a plaintext.
-        """
-        new_ctxt = CiphertextStat(ctxt)
-
-        #### TODO ####
-        #poly_eval로 계산해야함!!!!!!!!!!!!!!!!!
-        new_ctxt._arr = self._sign(ctxt._arr)
-        return new_ctxt
-
     def comp(self, ctxt1:Ciphertext, oper2):
         """sign 두 번 composite
         """
@@ -203,25 +181,5 @@ class Algorithms():
         """
 
     def eval_poly(self, ctxt:CiphertextStat, coeff:list, tol=1e-6):
-        pass
-
-    @staticmethod
-    def _approx_sign(n):
-        """
-        Approxiate sign function in [-1,1]
-        """
-        p_t1 = P.Polynomial([1,0,-1])
-        p_x  = P.Polynomial([0,1])
         
-        def c_(i: int):
-            return 1/4**i * math.comb(2*i,i)
-
-        def term_(i: int):
-            return c_(i) * p_x * p_t1**i
-
-        poly = term_(0)
-        for nn in range(1,n+1):
-            poly += term_(nn)
-        return poly
-
-    
+        return result
