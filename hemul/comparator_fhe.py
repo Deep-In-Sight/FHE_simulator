@@ -1,5 +1,6 @@
 import numpy as np
 from numpy import polynomial as P
+from .comparator import _appr_sign_funs
 
 # degrees from i=1 to k
 # from Eunsang Lee+21
@@ -39,60 +40,10 @@ MINIMUM_DEPTH = {4:[27],
                 19:[15,29,31,31,31],
                 20:[29,31,31,31,31]}
 
-def signv(x):
-    ret = np.ones(len(x))
-    ret[x<0] = -1
-    return ret
 
-def minimax(xl1, xr1, xl2, xr2, deg, npoints = 100):
-    xx = np.concatenate((np.linspace(xl1,xr1,npoints), 
-                         np.linspace(xl2,xr2,npoints)))
-    chev = P.chebyshev.Chebyshev.fit(xx, signv(xx), deg=deg) # F.elu
-    power = chev.convert(kind=P.Polynomial)
-    return power
-
-def _appr_sign_funs(degrees, xmin = -1, xmax = 1,
-                    margin = 0.01, eps=0.02): 
-    xin = np.linspace(xmin,#  + 0.1*margin,
-                      xmax, 100000)
-
-    funs=[]
-    for deg in degrees:
-        #print(deg, eps, xin.min()-margin, -eps+margin, eps-margin, xin.max()+margin)
-        fun = minimax(xin.min()-margin, -eps+margin, eps-margin, xin.max()+margin, deg, npoints = 2*deg+1)
-        xin = fun(xin)
-        eps = 1-(1-2*eps)**2
-        funs.append(fun)
-    return funs
-                    
-def appr_sign(xin, xmin=-1, xmax=1, alpha=10, margin = 0.01, eps=0.02, min_depth=True, min_mult=False):
-    """approximate sign function
-    
-    parameters
-    ----------
-    ctxt: Ciphertext
-    alpha: positive int, tolerance parameter. err <= 2**alpha
-    """
-    #xin = np.linspace(xmin, xmax, 100000)
-    if min_depth:
-        degrees = MINIMUM_DEPTH[alpha]
-    elif min_mult:
-        degrees = MINIMUM_MULT[alpha]
-
-    funs = _appr_sign_funs(degrees, xmin, xmax, 
-                margin=margin, eps=eps)
-    for fun in funs:
-        xin = fun(xin)
-    return xin
-
-def appr_relu(xin, xmin, xmax, *args, **kwargs):
-    out = appr_sign(xin, xmin, xmax, *args, **kwargs)
-    #xin = np.linspace(xmin, xmax, 100000)
-    return xin * (out+1)/2
-
-
-class ApprSign():
+class ApprSign_FHE():
     def __init__(self, 
+                 ev,
                 alpha=12, 
                 margin = 0.01, 
                 eps=0.02, 
@@ -100,6 +51,7 @@ class ApprSign():
                 xmax=1,
                 min_depth=True, 
                 min_mult=False):
+        self.ev = ev
         self.alpha = alpha
         self.margin = margin
         self.eps = eps
@@ -139,27 +91,23 @@ class ApprSign():
     def __call__(self, xin):
         if self.funs is not None:
             for fun in self.funs:
-                xin = fun(xin)
+                xin = self.ev.function_poly(xin, fun.coef, xin.logp)
             return xin
         else:
             self._set_funs()
             return self.__call__(xin)
 
-class ApprRelu(ApprSign):
-    """
-
-    example
-
-    >>> ev = Evaluator(context)
-    >>> appr = ApprRelu_FHE(ev, xmin=-10, xmax=10, min_depth=True)
-    >>> activated = appr(ctx_a)
-
-    """
+class ApprRelu_FHE(ApprSign_FHE):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
     
     def __call__(self, xin):
-        out = ApprSign.__call__(self, xin)
-        return xin * (out+1)/2
-
+        ev = self.ev
+        out = ApprSign_FHE.__call__(self, ev.copy(xin))
+        tmp = ev.add_plain(out, 1, logp = out.logp)
+        tmp = ev.mult_by_plain(tmp, 1/2, logp = tmp.logp)
+        ev.rescale_next(tmp)
         
+        ev.mod_down_to(xin, tmp.logq)
+        ev.mult(xin, tmp, inplace=True)
+        return xin

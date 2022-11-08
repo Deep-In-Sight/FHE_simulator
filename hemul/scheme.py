@@ -220,8 +220,8 @@ class Evaluator():
             ctxt._arr = self._mult_by_plain(ctxt, ptxt)
             ctxt.logp += ptxt.logp            
         else:
-            new_ctxt = create_new_ctxt(ctxt)
-            new_ctxt._arr = self._mult_by_plain(ctxt, ptxt)
+            new_ctxt = copy_ctxt(ctxt)
+            new_ctxt._arr = self._mult_by_plain(new_ctxt, ptxt)
             new_ctxt.logp = ctxt.logp + ptxt.logp
             return new_ctxt
 
