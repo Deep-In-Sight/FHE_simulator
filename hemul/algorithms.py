@@ -161,25 +161,9 @@ class Algorithms():
         return ev.mult(ctxt, self.inv_sqrt(ctxt), inplace=False)
 
 ################# comp #################
-    def comp(self, ctxt1:Ciphertext, oper2):
-        """sign 두 번 composite
-        """
-        if isinstance(oper2, Ciphertext):
-            diff = self.evaluator.sub(ctxt1, oper2)
-        elif isinstance(oper2, Plaintext):
-            diff = self.evaluator.sub_plain(ctxt1, oper2)
-        one = Plaintext(arr=np.repeat(1., diff.nslots),
-                     logp = diff.logp, nslots = diff.nslots)
-        half = Plaintext(arr=np.repeat(.5, diff.nslots),
-                     logp = diff.logp, nslots = diff.nslots)
-        sign_plus1 = self.evaluator.add_plain(self.sign(self.sign(diff)), one)
-        return self.evaluator.mult_by_plain(sign_plus1, half)
+    #def comp(self, ctxt1:Ciphertext, oper2):
+    # comparator_fhe 참조
 
-    def _powerExtended(self, ctxt:CiphertextStat,degree:int):
-        """
-        SchemeAlgo::powerExtended(Ciphertext* res, Ciphertext& cipher, long logp, long degree)
-        """
 
-    def eval_poly(self, ctxt:CiphertextStat, coeff:list, tol=1e-6):
-        
-        return result
+    #def eval_poly(self, ctxt:CiphertextStat, coeff:list, tol=1e-6):
+    # foudn in scheme.py
