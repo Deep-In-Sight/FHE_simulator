@@ -19,4 +19,6 @@ def set_all(logp, logq, logn):
     encryptor = Encryptor(context)
     decryptor = Decryptor(sk)
 
+    from time import sleep
+    sleep(3.3)
     return context, ev, encoder, encryptor, decryptor

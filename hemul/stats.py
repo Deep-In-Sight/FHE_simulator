@@ -6,30 +6,35 @@ class Statistics():
     def __init__(self, evaluator:Evaluator, encoder:Encoder):
         """Statistics module
         
-        
-        Consider keeping track of intermediate values
+        ctxt varries some intermediate values.
+        Check for the values before calculating again.
+
+        e.g.)
+        var = ctxt._basic_stats['var']
+
         """
         self.evaluator = evaluator
         self.encoder = encoder
         self.algorithms = Algorithms(self.evaluator, self.encoder)
         
-    def variance(self, ctxt):
+    def var(self, ctxt_in):
         """
-
         Check for further improvement:
         https://en.wikipedia.org/wiki/Algorithms_for_calculating_variance
 
-        notably, there're online versions (which don't apply to SIMD setting),
+        notably, there're online versions (which don't comply with SIMD setting),
         and parallel/distributed versions (probably relevant to us)
         """
         ev = self.evaluator
         algo = self.algorithms
+        ctxt = ev.copy(ctxt_in)
 
         n = algo.encode_repeat(ctxt._n_elements)
-        mean = self.mean(ctxt, partial=True, duplicate=True)
+        mean = self.mean(ctxt, partial=True, duplicate=False)
         self.evaluator.rescale_next(mean)
         mean = algo.put_mask(mean, np.arange(ctxt._n_elements))
         self.evaluator.rescale_next(mean)
+        ev.mod_down_to(ctxt, mean.logq)
         sub = ev.sub(ctxt, mean)
         squared = ev.mult(sub, sub, inplace=False) # Or, square()
         self.evaluator.rescale_next(squared)
@@ -40,7 +45,7 @@ class Statistics():
     def std(self, ctxt):
         algo = self.algorithms
 
-        return algo.sqrt(self.variance(ctxt))
+        return algo.sqrt(self.var(ctxt))
 
     def stderr(self, ctxt):
         algo = self.algorithms
@@ -149,7 +154,7 @@ class Statistics():
         ev = self.evaluator
         algo = self.algorithms
         
-        return ev.mult(self.variance(ctxt), algo.inv(self.mean(ctxt)))
+        return ev.mult(self.var(ctxt), algo.inv(self.mean(ctxt)))
 
     def min(self, ctxt):
 
