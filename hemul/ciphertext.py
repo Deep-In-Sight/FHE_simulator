@@ -173,6 +173,9 @@ class CiphertextStat(Ciphertext):
         self._enckey_hash = None
         self._encrypted = True
         self._valid_slots = None
+        self._basic_stats = {'var': None, 'std': None, 
+                             'sum': None, 'sum2': None,
+                             'mean':None, 'min':None, 'max':None}
     
     def _set_arr(self, enckey_hash, arr, n_elements=None):
         if self.nslots is not None:
