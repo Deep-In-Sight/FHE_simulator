@@ -141,9 +141,11 @@ class Evaluator(FHE_OP):
         assert ctxt.logq >= logq, "Cannot mod down to a higher level"
         self._change_mod(ctxt, logq)
 
-    def match_mod(self, ctxt1:Ciphertext, ctxt2:Ciphertext):
+    def match_mod(self, ctxt1:Ciphertext, ctxt2:Ciphertext, inplace=True):
         self._change_mod(ctxt2, min([ctxt1.logq, ctxt2.logq]))
         self._change_mod(ctxt1, ctxt2.logq)
+        if not inplace:
+            return ctxt1
 
     # @staticmethod
     # @check_compatible
@@ -306,7 +308,10 @@ class Evaluator(FHE_OP):
             return new_ctxt
 
     def div_by_plain(self, ctxt, ptxt, inplace=False):
-        inv_ptxt = copy(ptxt)
+        if not isinstance(ptxt, Plaintext):
+            inv_ptxt = Plaintext(arr=np.repeat(ptxt, ctxt.nslots), logn=ctxt.logn, logp=ctxt.logp)
+        else:
+            inv_ptxt = copy(ptxt)
         inv_ptxt._arr = 1./inv_ptxt._arr
         if inplace:
             self.mult_by_plain(ctxt, inv_ptxt, inplace=inplace)
@@ -318,11 +323,13 @@ class Evaluator(FHE_OP):
         assert ctxt.logq > 0, "no more noise budget! do bootstrapping"
         self._counter.rescale(ctxt)
 
-    def rescale_next(self, ctxt:Ciphertext):
+    def rescale_next(self, ctxt:Ciphertext, inplace=True):
         """lower ctxt's scale by default scale"""
         delta = self._logp
         ctxt.logp -= delta
         self._reduce_logq(ctxt, delta)
+        if not inplace:
+            return ctxt
 
     def rescale_to(self, ctxt1:Ciphertext, ctxt2:Ciphertext):
         assert ctxt1.logp > ctxt2.logp, "can't raise ctxt's scale"

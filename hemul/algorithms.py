@@ -75,6 +75,11 @@ class Algorithms():
             ev.add(ctxt_, tmp, inplace=True)
         return ctxt_
 
+    def mean(self, ctxt):
+        #n = self.algo.encode_repeat(ctxt._n_elements)
+        summed = self.sum_reduce(ctxt)
+        return self.evaluator.div_by_plain(summed, ctxt._n_elements, inplace=False)
+
     def put_mask(self, ctxt:CiphertextStat, mask:slice, inplace=False):
         """Multily ctxt by a plain mask
 
