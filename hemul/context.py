@@ -21,4 +21,5 @@ def set_all(logp, logq, logn):
 
     from time import sleep
     sleep(3.3)
+    print("FHE context is set")
     return context, ev, encoder, encryptor, decryptor

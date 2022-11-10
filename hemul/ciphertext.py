@@ -2,6 +2,7 @@ from logging.config import valid_ident
 import numpy as np
 from .errors import InvalidParamError
 from .cipher import Parameters
+from time import sleep
 
 class CipherABC():
     def __init__(self, logp:int=None, logn:int=None, nslots:int=None):
@@ -99,6 +100,7 @@ class Ciphertext(CipherABC):
         self._nslots = None
         self._ntt = False
         self.level = 0
+        sleep(0.1)
         
         if len(args) == 1:
             if isinstance(args[0], Ciphertext):
