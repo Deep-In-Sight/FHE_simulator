@@ -1,3 +1,4 @@
+import tomli
 from typing import Dict
 import numpy as np
 from .cipher import *
@@ -5,6 +6,32 @@ from .ciphertext import *
 from .errors import *
 from .utils import *
 from copy import copy
+
+from pathlib import Path
+
+try: 
+    _ = FHE_OP()
+    FHE_exists = True
+except:
+    FHE_exists = False
+
+cwd = Path.cwd()
+try:
+    print("cwd = ", cwd)
+    conf = tomli.load(open(cwd / "fhe_config.toml", "rb"))
+except:
+    print("fhe_config.toml not found. Running in emulation mode")
+    conf = {"runtime":{"scheme":"EMUL"}}
+
+
+if not FHE_exists:
+    if conf["runtime"]['scheme'] == "HEAAN":
+        print("binding to HEAAN")
+        from hemul.base_heaan import FHE_OP
+    elif conf['runtime']['scheme'] == "EMUL":
+        print("runnin in emulation mode")
+        from hemul.base_emul import FHE_OP
+   
 
 class Encoder():
     def __init__(self, context):
@@ -69,7 +96,7 @@ def copy_ctxt(ctxt:CiphertextStat):
     new_ctxt._n_elements = ctxt._n_elements
     return new_ctxt
 
-class Evaluator():
+class Evaluator(FHE_OP):
     def __init__(self, keys:Dict, context:Context):
         self._multiplication_key = keys['mult']
         self.rotation_keys = keys['rot']
@@ -94,12 +121,12 @@ class Evaluator():
             new_ctxt._arr = -1*new_ctxt._arr
             return new_ctxt
 
-    def _change_mod(self, ctxt:Ciphertext, logq):
-        """
-        proxy for Scheme.change_mod
-        """
-        ctxt.logq = logq
-        self._counter.mod_switch(ctxt)
+    # def _change_mod(self, ctxt:Ciphertext, logq):
+    #     """
+    #     proxy for Scheme.change_mod
+    #     """
+    #     ctxt.logq = logq
+    #     self._counter.mod_switch(ctxt)
 
     def mod_down_by(self, ctxt:Ciphertext, logp, inplace=True):
         assert ctxt.logq > logp, "Cannot mod down any further"
@@ -118,12 +145,12 @@ class Evaluator():
         self._change_mod(ctxt2, min([ctxt1.logq, ctxt2.logq]))
         self._change_mod(ctxt1, ctxt2.logq)
 
-    @staticmethod
-    @check_compatible
-    def _add(ctxt1:Ciphertext, ctxt2:Ciphertext):
-        """proxy for HEAAN.ring.add() and ring.addAndEqual()
-        """
-        return ctxt1._arr + ctxt2._arr
+    # @staticmethod
+    # @check_compatible
+    # def _add(ctxt1:Ciphertext, ctxt2:Ciphertext):
+    #     """proxy for HEAAN.ring.add() and ring.addAndEqual()
+    #     """
+    #     return ctxt1._arr + ctxt2._arr
         
     def add(self, ctxt1:CiphertextStat, ctxt2:CiphertextStat, inplace=False):
         assert self.multkey_hash == ctxt1._enckey_hash == ctxt2._enckey_hash, "Eval key and Enc keys don't match"
@@ -134,12 +161,12 @@ class Evaluator():
             new_ctxt._set_arr(ctxt1._enckey_hash, self._add(ctxt1,ctxt2))
             return new_ctxt
 
-    @staticmethod
-    @check_compatible
-    def _add_plain(ctxt:Ciphertext, ptxt:Plaintext):
-        """proxy for HEAAN.ring.addConst() and ring.addConstAndEqual()
-        """
-        return ctxt._arr + ptxt._arr
+    # @staticmethod
+    # @check_compatible
+    # def _add_plain(ctxt:Ciphertext, ptxt:Plaintext):
+    #     """proxy for HEAAN.ring.addConst() and ring.addConstAndEqual()
+    #     """
+    #     return ctxt._arr + ptxt._arr
         
     def add_plain(self, ctxt:CiphertextStat, ptxt:Plaintext, logp=None, inplace=False):
         #assert self.multkey_hash == ctxt._enckey_hash, "Eval key and Enc keys don't match"
@@ -152,12 +179,12 @@ class Evaluator():
             new_ctxt._set_arr(ctxt._enckey_hash, self._add_plain(ctxt,ptxt))
             return new_ctxt
 
-    @staticmethod
-    @check_compatible
-    def _sub(ctxt1:Ciphertext, ctxt2:Ciphertext):
-        """proxy for HEAAN.ring.sub() and ring.subAndEqual1,2()
-        """
-        return ctxt1._arr - ctxt2._arr
+    # @staticmethod
+    # @check_compatible
+    # def _sub(ctxt1:Ciphertext, ctxt2:Ciphertext):
+    #     """proxy for HEAAN.ring.sub() and ring.subAndEqual1,2()
+    #     """
+    #     return ctxt1._arr - ctxt2._arr
         
     def sub(self, ctxt1:CiphertextStat, ctxt2:CiphertextStat, inplace=False):
         assert self.multkey_hash == ctxt1._enckey_hash == ctxt2._enckey_hash, "Eval key and Enc keys don't match"
@@ -168,12 +195,12 @@ class Evaluator():
             new_ctxt._set_arr(ctxt1._enckey_hash, self._sub(ctxt1,ctxt2))
             return new_ctxt
 
-    @staticmethod
-    @check_compatible
-    def _sub_plain(ctxt:Ciphertext, ptxt:Plaintext):
-        """proxy for HEAAN.ring.sub() and ring.subAndEqual1,2()
-        """
-        return ctxt._arr - ptxt._arr
+    # @staticmethod
+    # @check_compatible
+    # def _sub_plain(ctxt:Ciphertext, ptxt:Plaintext):
+    #     """proxy for HEAAN.ring.sub() and ring.subAndEqual1,2()
+    #     """
+    #     return ctxt._arr - ptxt._arr
         
     def sub_plain(self, ctxt:CiphertextStat, ptxt:Plaintext, inplace=False):
         #assert self.multkey_hash == ctxt._enckey_hash, "Eval key and Enc key don't match"
@@ -185,16 +212,16 @@ class Evaluator():
             return new_ctxt
         
 
-    def _mult(self, ctxt1:Ciphertext, ctxt2:Ciphertext):
-        """
-        """
-        if not ctxt1._ntt:
-            self.switch_ntt(ctxt1)
-        if not ctxt2._ntt:
-            self.switch_ntt(ctxt2)        
+    # def _mult(self, ctxt1:Ciphertext, ctxt2:Ciphertext):
+    #     """
+    #     """
+    #     if not ctxt1._ntt:
+    #         self.switch_ntt(ctxt1)
+    #     if not ctxt2._ntt:
+    #         self.switch_ntt(ctxt2)        
 
-        self._counter.multc(ctxt1)
-        return ctxt1._arr * ctxt2._arr
+    #     self._counter.multc(ctxt1)
+    #     return ctxt1._arr * ctxt2._arr
         
     def mult(self, ctxt1, ctxt2, inplace=False):
         assert self.multkey_hash == ctxt1._enckey_hash == ctxt2._enckey_hash, "Eval key and Enc keys don't match"        
@@ -208,9 +235,9 @@ class Evaluator():
             new_ctxt.logp = ctxt1.logp + ctxt2.logp
             return new_ctxt
 
-    def _mult_by_plain(self, ctxt, ptxt):
-        self._counter.multp(ctxt)
-        return ctxt._arr * ptxt._arr
+    # def _mult_by_plain(self, ctxt, ptxt):
+    #     self._counter.multp(ctxt)
+    #     return ctxt._arr * ptxt._arr
 
     def mult_by_plain(self, ctxt:CiphertextStat, ptxt:Plaintext, logp=None, inplace=False):
         #assert self.multkey_hash == ctxt._enckey_hash, "Eval key and Enc keys don't match"        
