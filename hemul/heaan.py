@@ -1,5 +1,8 @@
 import numpy as np
-import hemul.HEAAN as he
+import hemul
+from hemul import loader
+he = loader.load()
+#from hemul import he
 
 class HEAANContext():
     def __init__(self, 
@@ -461,6 +464,15 @@ class HEAANContext():
         """
         self._scheme.modDownToAndEqual(ctxt, target.logq)
 
+    def modDownTo(self, ctxt, logq):
+        """Switch mod of ctxt down to target.logq
+
+        parameters
+        ----------
+        ctxt: HEAAN Ciphertext 
+        target: HEAAN Ciphertext
+        """
+        self._scheme.modDownToAndEqual(ctxt, logq)
 
     def modDownBy(self, ctxt, dlogq, inplace=False):
         """Switch mod of ctxt down to target.logq
