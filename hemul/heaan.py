@@ -291,7 +291,7 @@ class HEAANContext():
                                     self.parms.logI)
             print("bootstrap done")
     
-    def bootstrap2(self, ctxt, logq, inplace=True):
+    def bootstrap2(self, ctxt, inplace=True):
         """Bootstrap 
 
         parameters
@@ -299,10 +299,11 @@ class HEAANContext():
         ctxt: HEAAN Ciphertext
         inplace: bool [True]
         """
-        if inplace:
-            dec = self._scheme.decrypt(self.sk, ctxt)
-            ctxt = self._scheme.encrypt(self.sk, dec, self.parms.n, self.parms.logp, logq)
-            print("bootstrap done")            
+        # if inplace:
+        dec = self.decrypt(ctxt)
+        ctxt = self.encrypt(dec)#, self.parms.n, self.parms.logp, logq)
+        print("bootstrap done")            
+        return ctxt
 
 
 
@@ -481,10 +482,10 @@ class HEAANContext():
         if r ==0 and not inplace:
             return he.Ciphertext(ctxt)
 
-        print("Rotation by", r)
+        #print("Rotation by", r)
         if r < 0:
             r = self.parms.n + r
-            print("= Rotation by", r)
+            #print("= Rotation by", r)
 
         if inplace:  
             if r in self._lkey:
@@ -495,12 +496,12 @@ class HEAANContext():
         else:
             if r in self._lkey:
                 new_ctxt = he.Ciphertext()
-                print("Rotation by", r)
+                #print("Rotation by", r)
                 self._scheme.leftRotateFast(new_ctxt, ctxt, r)
             else:
                 new_ctxt = None
                 for rr in HEAANContext.split_in_twos(r):
-                    print("rr", rr)
+                    #print("rr", rr)
                     if new_ctxt is None:
                         new_ctxt = he.Ciphertext()
                         self._scheme.leftRotateFast(new_ctxt, ctxt, rr)
@@ -533,6 +534,17 @@ class HEAANContext():
             if int(d) == 1: nums.append(int(d))
 
         return nums
+
+    def function_poly(self, coeffs, ctx):
+        """wrapper of polynomial evaluation functions of HEAAN and SEAL
+        """
+        output = he.Ciphertext()
+        self.algo.function_poly(output, 
+                    ctx, 
+                    he.Double(coeffs), 
+                    self.parms.logp, 
+                    len(coeffs)-1)
+        return output
 
 
 
