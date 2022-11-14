@@ -62,7 +62,7 @@ def _appr_sign_funs(degrees, xmin = -1, xmax = 1,
         fun = minimax(xin.min()-margin, -eps+margin, eps-margin, xin.max()+margin, deg, npoints = 2*deg+1)
         xin = fun(xin)
         eps = 1-(1-2*eps)**2
-        funs.append(fun)
+        funs.append((fun, deg))
     return funs
                     
 def appr_sign(xin, xmin=-1, xmax=1, alpha=10, margin = 0.01, eps=0.02, min_depth=True, min_mult=False):
