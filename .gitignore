@@ -17,3 +17,6 @@ build/*
 *.map
 *.pyc
 __pycache__/*
+HEAAN/lib/src/*
+HEAAN/lib/libHEAAN.a
+*.txt
