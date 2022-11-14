@@ -20,7 +20,7 @@
 
 
 Ring::Ring() {
-
+	SetNumThreads(8); // NTL multi-threading by default
 	qpows = new ZZ[logQQ + 1];
 	qpows[0] = ZZ(1);
 	for (long i = 1; i < logQQ + 1; ++i) {

@@ -1,6 +1,54 @@
 import numpy as np
-from hemul.ciphertext import Ciphertext, Plaintext
-from hemul.utils import check_compatible
+from hemul.ciphertext import Ciphertext, Plaintext, CiphertextStat
+from hemul.utils import check_compatible, key_hash
+from hemul.cipher import Context
+
+
+class Encoder():
+    def __init__(self, context):
+        self.logp = context.params.logp
+        self.nslots = context.params.nslots
+
+    def encode(self, arr, logp=None, nslots=None):
+        if logp:
+            self.logp = logp
+        if nslots:
+            self.nstlos = nslots
+
+        assert(self.logp != None), 'Ptxt scale not set'
+
+        return Plaintext(arr=arr, logp = self.logp, nslots = self.nslots)
+
+
+class Encryptor():
+    def __init__(self, context:Context):
+        self._context = context
+        self._enc_key = self._context.enc_key
+        self.enckey_hash = key_hash(self._enc_key)
+    
+    def encrypt(self, arr):
+        # How to determine if I want Ciphertext or CiphertextStat?
+        ctxt = CiphertextStat(self._context.params.logp, 
+                              self._context.params.logq,
+                              self._context.params.logn)
+        
+        #encoded = _stringify(arr)
+        ctxt._set_arr(self.enckey_hash, arr)
+        # TODO: Need to determine nslots 
+        return ctxt
+
+class Decryptor():
+    def __init__(self, secret_key):
+        self._secret_key = secret_key
+        self._sk_hash = key_hash(secret_key)
+    
+    def decrypt(self, ctxt):
+        if ctxt._enckey_hash == self._sk_hash and ctxt._encrypted:
+            return ctxt._arr
+        else:
+            raise ValueError("You have a wrong secret key")
+
+
 
 class FHE_OP():
     def _change_mod(self, ctxt:Ciphertext, logq):

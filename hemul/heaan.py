@@ -97,6 +97,7 @@ class HEAANContext():
                 if rot_r is not None: 
                     self.addRkey(self._rkey)
                 if boot: 
+                    print("Adding Boot Keys")
                     self._scheme.addBootKey(self.sk, self.parms.logn, self.parms.logq + self.parms.logI)
             
         else:
@@ -111,7 +112,7 @@ class HEAANContext():
 
     @staticmethod
     def gen_2_exp(n):
-        return [2**nn for nn in range(n+1)]
+        return [2**nn for nn in range(n)]
 
     def parse_rotkey(self, rotkey):
         """Figure out which rotation keys to use
@@ -288,7 +289,22 @@ class HEAANContext():
                                     self.parms.logQ,
                                     self.parms.logT,
                                     self.parms.logI)
+            print("bootstrap done")
+    
+    def bootstrap2(self, ctxt, logq, inplace=True):
+        """Bootstrap 
+
+        parameters
+        ----------
+        ctxt: HEAAN Ciphertext
+        inplace: bool [True]
+        """
+        if inplace:
+            dec = self._scheme.decrypt(self.sk, ctxt)
+            ctxt = self._scheme.encrypt(self.sk, dec, self.parms.n, self.parms.logp, logq)
             print("bootstrap done")            
+
+
 
     def add(self, ctxt1, ctxt2, inplace=False):
         """Add ctxt2 to ctxt1
@@ -444,24 +460,52 @@ class HEAANContext():
         """
         self._scheme.modDownToAndEqual(ctxt, target.logq)
 
+
+    def modDownBy(self, ctxt, dlogq, inplace=False):
+        """Switch mod of ctxt down to target.logq
+
+        parameters
+        ----------
+        ctxt: HEAAN Ciphertext 
+        target: HEAAN Ciphertext
+        """
+        if inplace:
+            self._scheme.modDownByAndEqual(ctxt, dlogq)
+        else:
+            return self._scheme.modDownBy(ctxt, dlogq)
+
     def lrot(self, ctxt, r, inplace=False):
         """Left-rotate by r
         or, bring element at index r to index 0.
         """
+        if r ==0 and not inplace:
+            return he.Ciphertext(ctxt)
+
+        print("Rotation by", r)
         if r < 0:
-            r = self.parms.n - r
-        
+            r = self.parms.n + r
+            print("= Rotation by", r)
+
         if inplace:  
-            for rr in HEAANContext.split_in_twos(r):
-                self._scheme.leftRotateFastAndEqual(ctxt, rr)
+            if r in self._lkey:
+                self._scheme.leftRotateFastAndEqual(ctxt, r)
+            else:
+                for rr in HEAANContext.split_in_twos(r):
+                    self._scheme.leftRotateFastAndEqual(ctxt, rr)
         else:
-            new_ctxt = None
-            for rr in HEAANContext.split_in_twos(r):
-                if new_ctxt is None:
-                    new_ctxt = he.Ciphertext()
-                    self._scheme.leftRotateFast(new_ctxt, ctxt, rr)
-                else:
-                    self._scheme.leftRotateFastAndEqual(new_ctxt, rr)
+            if r in self._lkey:
+                new_ctxt = he.Ciphertext()
+                print("Rotation by", r)
+                self._scheme.leftRotateFast(new_ctxt, ctxt, r)
+            else:
+                new_ctxt = None
+                for rr in HEAANContext.split_in_twos(r):
+                    print("rr", rr)
+                    if new_ctxt is None:
+                        new_ctxt = he.Ciphertext()
+                        self._scheme.leftRotateFast(new_ctxt, ctxt, rr)
+                    else:
+                        self._scheme.leftRotateFastAndEqual(new_ctxt, rr)
             return new_ctxt
 
     def rrot(self, ctxt, r, inplace=False):
