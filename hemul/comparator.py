@@ -52,7 +52,7 @@ def minimax(xl1, xr1, xl2, xr2, deg, npoints = 100):
     return power
 
 def _appr_sign_funs(degrees, xmin = -1, xmax = 1,
-                    margin = 0.01, eps=0.02): 
+                    margin = 0.0005, eps=0.02): 
     xin = np.linspace(xmin,#  + 0.1*margin,
                       xmax, 100000)
 
@@ -60,8 +60,17 @@ def _appr_sign_funs(degrees, xmin = -1, xmax = 1,
     for deg in degrees:
         #print(deg, eps, xin.min()-margin, -eps+margin, eps-margin, xin.max()+margin)
         fun = minimax(xin.min()-margin, -eps+margin, eps-margin, xin.max()+margin, deg, npoints = 2*deg+1)
+        print("[HEMUL] EPS before", eps)
+
+        diff_r = max(abs(fun(xin[xin >= eps]) - 1))
+        diff_l = max(abs(fun(xin[xin <= -eps]) + 1))
+        eps = 1 - max([diff_r, diff_l])
+        #eps = min([eps, 0.9])
+        print("[HEMUL] EPS now", eps)
+
         xin = fun(xin)
-        eps = 1-(1-2*eps)**2
+        #eps = min([abs(fun(-eps+margin)), fun(eps-margin)])
+        #eps = min([eps, 0.9])
         funs.append((fun, deg))
     return funs
                     
