@@ -9,7 +9,7 @@ py_include_dir = os.path.join(get_python_inc())
 # Available at setup time due to pyproject.toml
 from pybind11.setup_helpers import Pybind11Extension, build_ext
 
-build_fpga=False
+build_fpga=True
 build_cuda=False
 
 cwd = os.getcwd()

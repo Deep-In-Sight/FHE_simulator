@@ -1,9 +1,11 @@
-build_fpga=false
+build_fpga=true
 build_cuda=false
-
 
 export ROOT_DIR=$PWD
 #export CGBN_INCLUDE_DIR=$ROOT_DIR/third_party/CGBN/include
+
+rm -rf build 
+rm -rf hemul.egg*
 
 cd $ROOT_DIR/HEAAN/lib/
 make clean && make  -j 4
