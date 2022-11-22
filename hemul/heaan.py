@@ -12,9 +12,9 @@ class HEAANContext():
                 is_owner=True,
                 rot_l = None,
                 rot_r = None,
-                boot=True,
+                boot=False,
                 key_path="./",
-                load_sk=False,
+                load_keys=False,
                 logqBoot=None,
                 FN_SK="SecretKey.txt",
                 FN_ENC="EncKey.txt",
@@ -42,7 +42,7 @@ class HEAANContext():
                 Generate bootstrapping key (, which requires all the rotation keys)
             key_path: string
                 path to keys
-            load_sk: bool
+            load_keys: bool
                 load secretkey. Effective only when is_owner==True 
             
 
@@ -69,7 +69,7 @@ class HEAANContext():
         self.ring = he.Ring()
         if self._is_owner:
             print("Initializing the scheme as the data owner", flush=True)
-            if load_sk:
+            if load_keys:
                 print("Loading a secret key from: ", self._key_path+FN_SK, flush=True)
                 self.sk = he.SecretKey(self._key_path+FN_SK)
                 

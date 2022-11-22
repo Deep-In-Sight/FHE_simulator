@@ -60,13 +60,13 @@ def _appr_sign_funs(degrees, xmin = -1, xmax = 1,
     for deg in degrees:
         #print(deg, eps, xin.min()-margin, -eps+margin, eps-margin, xin.max()+margin)
         fun = minimax(xin.min()-margin, -eps+margin, eps-margin, xin.max()+margin, deg, npoints = 2*deg+1)
-        print("[HEMUL] EPS before", eps)
+        #print("[HEMUL] EPS before", eps)
 
         diff_r = max(abs(fun(xin[xin >= eps]) - 1))
         diff_l = max(abs(fun(xin[xin <= -eps]) + 1))
         eps = 1 - max([diff_r, diff_l])
         #eps = min([eps, 0.9])
-        print("[HEMUL] EPS now", eps)
+        #print("[HEMUL] EPS now", eps)
 
         xin = fun(xin)
         #eps = min([abs(fun(-eps+margin)), fun(eps-margin)])
