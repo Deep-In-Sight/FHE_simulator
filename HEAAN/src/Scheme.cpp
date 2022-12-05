@@ -302,7 +302,9 @@ void Scheme::addBootKey(SecretKey& secretKey, long logl, long logp) {
 	ring.addBootContext(logl, logp);
 
 	addConjKey(secretKey);
+	cout << "Conjugation key added" << endl;
 	addLeftRotKeys(secretKey);
+	cout << "Left rotation keys added" << endl;
 
 	long loglh = logl/2;
 	long k = 1 << loglh;

@@ -1,4 +1,4 @@
-build_fpga=true
+build_fpga=false
 build_cuda=false
 
 export ROOT_DIR=$PWD

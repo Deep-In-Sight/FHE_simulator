@@ -663,12 +663,20 @@ void TestScheme::testWriteAndRead(long logq, long logp, long logSlots) {
 void TestScheme::testBootstrap(long logq, long logp, long logSlots, long logT) {
 	cout << "!!! START TEST BOOTSTRAP !!!" << endl;
 
+	
 	srand(time(NULL));
 	//SetNumThreads(8);
 	TimeUtils timeutils;
 	Ring ring;
 	SecretKey secretKey(ring);
 	Scheme scheme(secretKey, ring);
+
+	cout << "ddddddddddddd" << endl;
+	ring.addBootContext(logSlots, logp);
+
+	cout << "ddddddddddddd222" << endl;
+	scheme.addConjKey(secretKey);
+
 
 	timeutils.start("Key generating");
 	scheme.addBootKey(secretKey, logSlots, logq + 4);
@@ -715,7 +723,7 @@ void TestScheme::testBootstrap(long logq, long logp, long logSlots, long logT) {
 
 	complex<double>* dvec = scheme.decrypt(secretKey, cipher);
 
-	StringUtils::compare(mvec, dvec, slots, "boot");
+	//StringUtils::compare(mvec, dvec, slots, "boot");
 
 	cout << "!!! END TEST BOOTSRTAP !!!" << endl;
 }
