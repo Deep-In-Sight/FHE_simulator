@@ -108,7 +108,8 @@ class ApprSign():
                 xmin=-1,
                 xmax=1,
                 min_depth=True, 
-                min_mult=False):
+                min_mult=False,
+                debug=False):
         self.alpha = alpha
         self.margin = margin
         self.eps = eps
@@ -118,6 +119,7 @@ class ApprSign():
         self.min_mult = min_mult
         self.funs = None
         self.degrees = None
+        self.debug = debug
         if self.alpha is not None:
             self._set_degree()
         if self._params_set():
@@ -147,8 +149,12 @@ class ApprSign():
 
     def __call__(self, xin):
         if self.funs is not None:
-            for fun in self.funs:
+            for fun, deg in self.funs:
                 xin = fun(xin)
+                if self.debug: 
+                    print(f"degree = {deg}")
+                    print(f"min, max", xin.min(), xin.max())
+
             return xin
         else:
             self._set_funs()
