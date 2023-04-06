@@ -20,3 +20,4 @@ __pycache__/*
 HEAAN/lib/src/*
 HEAAN/lib/libHEAAN.a
 *.txt
+*.d
