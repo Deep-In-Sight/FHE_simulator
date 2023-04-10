@@ -15,9 +15,9 @@
   */
 int main(int argc, char **argv) {
 
-	long logq = 60; ///< Ciphertext Modulus
+	long logq = 120; ///< Ciphertext Modulus
 	long logp = 30; ///< Real message will be quantized by multiplying 2^40
-	long logn = 13; ///< log2(The number of slots)
+	long logn = 5; ///< log2(The number of slots)
 
     //TestScheme::testWriteAndRead(logq, logp, logn);
 //----------------------------------------------------------------------------------
@@ -31,6 +31,7 @@ int main(int argc, char **argv) {
 	if(string(argv[1]) == "Add") TestScheme::testAdd(logq, logp, logn);
 	if(string(argv[1]) == "Mult") TestScheme::testMult(logq, logp, logn);
 	if(string(argv[1]) == "iMult") TestScheme::testiMult(logq, logp, logn);
+	if(string(argv[1]) == "MultByVec") TestScheme::testMultByVec(logq, logp, logn);
 
 //----------------------------------------------------------------------------------
 //   ROTATE & CONJUGATE

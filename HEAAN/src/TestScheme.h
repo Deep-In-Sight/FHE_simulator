@@ -31,6 +31,7 @@ public:
 	
 	static void testiMult(long logq, long logp, long logn);
 
+	static void testMultByVec(long logq, long logp, long logn);
 
 	//----------------------------------------------------------------------------------
 	//   ROTATE & CONJUGATE TESTS

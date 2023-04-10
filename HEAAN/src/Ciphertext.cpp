@@ -47,3 +47,13 @@ Ciphertext::~Ciphertext() {
 	delete[] ax;
 	delete[] bx;
 }
+
+long Ciphertext::maxBits(const ZZ* f, long n) {
+   long i, m;
+   m = 0;
+
+   for (i = 0; i < n; i++) {
+      m = max(m, NumBits(f[i]));
+   }
+   return m;
+}

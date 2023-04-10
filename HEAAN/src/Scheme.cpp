@@ -899,6 +899,22 @@ void Scheme::multByConstVecAndEqual(Ciphertext& cipher, double* cnstVec, long lo
 	delete[] cnstPoly;
 }
 
+void Scheme::multByConstVecAndEqual2(Ciphertext& cipher, complex<double>* cnstVec, long logp) {
+	long slots = cipher.n;
+	ZZ* cnstPoly = new ZZ[N];
+	ring.encode(cnstPoly, cnstVec, slots, logp);
+	multByPolyAndEqual(cipher, cnstPoly, logp);
+	delete[] cnstPoly;
+}
+
+void Scheme::multByConstVecAndEqual2(Ciphertext& cipher, double* cnstVec, long logp) {
+	long slots = cipher.n;
+	ZZ* cnstPoly = new ZZ[N];
+	ring.encode(cnstPoly, cnstVec, slots, logp);
+	multByPolyAndEqual(cipher, cnstPoly, logp);
+	delete[] cnstPoly;
+}
+
 void Scheme::multByConstAndEqual(Ciphertext& cipher, double cnst, long logp) {
 	ZZ q = ring.qpows[cipher.logq];
 	ZZ cnstZZ = EvaluatorUtils::scaleUpToZZ(cnst, logp);
@@ -956,8 +972,16 @@ void Scheme::multByPolyAndEqual(Ciphertext& cipher, ZZ* poly, long logp) {
 	long np = ceil((cipher.logq + bnd + logN + 2)/(double)pbnd);
 	uint64_t* rpoly = new uint64_t[np << logN];
 	ring.CRT(rpoly, poly, np);
-	ring.multNTTAndEqual(cipher.ax, rpoly, np, q);
-	ring.multNTTAndEqual(cipher.bx, rpoly, np, q);
+		
+	if (cipher.isCRT) {
+		cipher.ra = 
+		ring.multNoNTTAndEqual(cipher.ax, rpoly, np, q);
+		ring.multNoNTTAndEqual(cipher.bx, rpoly, np, q);
+	
+	} else {
+		ring.multNTTAndEqual(cipher.ax, rpoly, np, q);
+		ring.multNTTAndEqual(cipher.bx, rpoly, np, q);
+	}
 	delete[] rpoly;
 	cipher.logp += logp;
 }
