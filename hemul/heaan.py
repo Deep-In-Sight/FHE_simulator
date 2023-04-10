@@ -1,8 +1,9 @@
 import numpy as np
-import hemul
 from hemul import loader
 he = loader.load()
 #from hemul import he
+
+DEBUG_CONVERSION = True
 
 class HEAANContext():
     def __init__(self, 
@@ -361,7 +362,7 @@ class HEAANContext():
             self._scheme.sub(new_ct, ctxt1, ctxt2)
             return new_ct      
 
-    def multByConst(self, ctxt, val, inplace=False, rescale=False):
+    def multByConst(self, ctxt, val, inplace=False, rescale=False ):
         """Multiply (all slots of) a ciphertext by a plain value.
         
         parameters
@@ -374,6 +375,7 @@ class HEAANContext():
         """
         if inplace:
             self._scheme.multByConstAndEqual(ctxt, he.Double(list(val)), ctxt.logp)
+            if DEBUG_CONVERSION: print("[DEBUG_CONVERSION] multC", id(ctxt))
             if rescale: self.rescale(ctxt)
         else:
             new_ct = he.Ciphertext()
@@ -381,7 +383,7 @@ class HEAANContext():
             if rescale: self.rescale(new_ct)
             return new_ct
 
-    def multByVec(self, ctxt, val, inplace=False, rescale=False):
+    def multByVec(self, ctxt, val, inplace=False, rescale=False ):
         """Element-wise multiplication of a ciphertext and a plain sequence
         
         parameters
@@ -399,6 +401,7 @@ class HEAANContext():
             
         if inplace:
             self._scheme.multByConstVecAndEqual(ctxt, he.Double(val), ctxt.logp)
+            if DEBUG_CONVERSION: print("[DEBUG_CONVERSION] multV", id(ctxt))
             if rescale: self.rescale(ctxt)
         else:
             new_ct = he.Ciphertext()
@@ -406,7 +409,7 @@ class HEAANContext():
             if rescale: self.rescale(new_ct)
             return new_ct
 
-    def mult(self, ctxt1, ctxt2, inplace=False, rescale=False):
+    def mult(self, ctxt1, ctxt2, inplace=False, rescale=False ):
         """Element-wise multiplication of two ciphertexts
         
         parameters
@@ -417,6 +420,7 @@ class HEAANContext():
         """
         if inplace:
             self._scheme.multAndEqual(ctxt1, ctxt2)
+            if DEBUG_CONVERSION: print("[DEBUG_CONVERSION] mult", id(ctxt1))
             if rescale: self.rescale(ctxt1)
         else:
             new_ct = he.Ciphertext()
@@ -487,7 +491,7 @@ class HEAANContext():
         else:
             return self._scheme.modDownBy(ctxt, dlogq)
 
-    def lrot(self, ctxt, r, inplace=False):
+    def lrot(self, ctxt, r, inplace=False ):
         """Left-rotate by r
         or, bring element at index r to index 0.
         """
@@ -500,6 +504,7 @@ class HEAANContext():
             #print("= Rotation by", r)
 
         if inplace:  
+            if DEBUG_CONVERSION: print("[DEBUG_CONVERSION] rot", id(ctxt))
             if r in self._lkey:
                 self._scheme.leftRotateFastAndEqual(ctxt, r)
             else:
@@ -521,7 +526,7 @@ class HEAANContext():
                         self._scheme.leftRotateFastAndEqual(new_ctxt, rr)
             return new_ctxt
 
-    def rrot(self, ctxt, r, inplace=False):
+    def rrot(self, ctxt, r, inplace=False ):
         """Right-rotate by r
         """
         r = self.parms.n - r
