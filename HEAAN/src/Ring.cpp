@@ -342,6 +342,10 @@ void Ring::multDNTT(ZZ* x, uint64_t* ra, uint64_t* rb, long np, const ZZ& q) {
 	multiplier.multDNTT(x, ra, rb, np, q);
 }
 
+void Ring::multNoNTT(uint64_t* ra, uint64_t* rb, long np, const ZZ& q) {
+	multiplier.multNoNTTAndEqual(ra, rb, np, q);
+}
+
 void Ring::multAndEqual(ZZ* a, ZZ* b, long np, const ZZ& q) {
 	multiplier.multAndEqual(a, b, np, q);
 }

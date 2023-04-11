@@ -975,8 +975,8 @@ void Scheme::multByPolyAndEqual(Ciphertext& cipher, ZZ* poly, long logp) {
 		
 	if (cipher.isCRT) {
 		cipher.ra = 
-		ring.multNoNTTAndEqual(cipher.ax, rpoly, np, q);
-		ring.multNoNTTAndEqual(cipher.bx, rpoly, np, q);
+		ring.multNoNTT(cipher.ax, rpoly, np, q);
+		ring.multNoNTT(cipher.bx, rpoly, np, q);
 	
 	} else {
 		ring.multNTTAndEqual(cipher.ax, rpoly, np, q);

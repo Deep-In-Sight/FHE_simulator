@@ -76,6 +76,8 @@ public:
 
 	void multDNTT(ZZ* x, uint64_t* a, uint64_t* rb, long np, const ZZ& q);
 
+	void multNoNTT(uint64_t* ra, uint64_t* rb, long np, const ZZ& q);
+	
 	void multAndEqual(ZZ* a, ZZ* b, long np, const ZZ& q);
 
 	void multNTTAndEqual(ZZ* a, uint64_t* rb, long np, const ZZ& q);

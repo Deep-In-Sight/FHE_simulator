@@ -277,14 +277,14 @@ void RingMultiplier::multDNTT(ZZ* x, uint64_t* ra, uint64_t* rb, long np, const 
 	delete[] rx;
 }
 
-void RingMultiplier::multNoNTTAndEqual(ZZ* x, uint64_t* ra, uint64_t* rb, long np, const ZZ& mod) {
+void RingMultiplier::multNoNTTAndEqual(uint64_t* ra, uint64_t* rb, long np, const ZZ& mod) {
 	uint64_t* rx = new uint64_t[np << logN]();
 
 	NTL_EXEC_RANGE(np, first, last);
 	for (long i = first; i < last; ++i) {
 		uint64_t* rai = ra + (i << logN);
 		uint64_t* rbi = rb + (i << logN);
-		uint64_t* rxi = rx + (i << logN);
+		uint64_t* rxi = rx + (i << logN); // Skip first N elements (shift pointer by N)
 		uint64_t pi = pVec[i];
 		uint64_t pri = prVec[i];
 		for (long n = 0; n < N; ++n) {
