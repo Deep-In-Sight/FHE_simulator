@@ -1,13 +1,21 @@
 # This sample should be run after make libHEAAN.a file in lib folder
 
 # All Target
-all: clean TestHEAAN
+all: clean TestHEAAN NTT
 
 # Tool invocations
 TestHEAAN:
 	@echo 'Building target: $@'
 	@echo 'Invoking: GCC C++ Linker'
 	g++ test.cpp -o TestHEAAN -L/usr/local/lib ../lib/libHEAAN.a -lntl -lgmp -lm -std=c++11 -g -I/../src -pthread 
+	##-O2 
+	@echo 'Finished building target: $@'
+	@echo ' '
+
+NTT:
+	@echo 'Building target: $@'
+	@echo 'Invoking: GCC C++ Linker'
+	g++ test_NTT.cpp -o TestNTT -L/usr/local/lib ../lib/libHEAAN.a -lntl -lgmp -lm -std=c++11 -g -I/../src -pthread 
 	##-O2 
 	@echo 'Finished building target: $@'
 	@echo ' '

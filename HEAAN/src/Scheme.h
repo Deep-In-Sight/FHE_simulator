@@ -195,6 +195,11 @@ public:
 
 	void multByConstVec(Ciphertext& res, Ciphertext& cipher, complex<double>* cnstVec, long logp);
 
+
+
+	void reconstruct(Ciphertext& cipher);
+	void INTT(Ciphertext& cipher);
+
 	void multByConstVecAndEqual(Ciphertext& cipher, complex<double>* cnstVec, long logp);
 	void multByConstVecAndEqual2(Ciphertext& cipher, complex<double>* cnstVec, long logp);
 
@@ -202,6 +207,10 @@ public:
 
 	void multByConstVecAndEqual(Ciphertext& cipher, double* cnstVec, long logp);    
 	void multByConstVecAndEqual2(Ciphertext& cipher, double* cnstVec, long logp);    
+
+
+
+
 
 	void multByConstAndEqual(Ciphertext& cipher, double cnst, long logp);
 

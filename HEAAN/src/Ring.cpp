@@ -20,7 +20,7 @@
 
 
 Ring::Ring() {
-	SetNumThreads(8); // NTL multi-threading by default
+	SetNumThreads(1); // NTL multi-threading by default
 	qpows = new ZZ[logQQ + 1];
 	qpows[0] = ZZ(1);
 	for (long i = 1; i < logQQ + 1; ++i) {
@@ -350,8 +350,20 @@ void Ring::multAndEqual(ZZ* a, ZZ* b, long np, const ZZ& q) {
 	multiplier.multAndEqual(a, b, np, q);
 }
 
+void Ring::INTT(uint64_t* rxi, long np) {
+	NTL_EXEC_RANGE(np, first, last);
+	for (long i = first; i < last; ++i) {
+		multiplier.INTT(rxi, i);
+	}
+	NTL_EXEC_RANGE_END;
+}
+
 void Ring::multNTTAndEqual(ZZ* a, uint64_t* rb, long np, const ZZ& q) {
 	multiplier.multNTTAndEqual(a, rb, np, q);
+}
+
+void Ring::reconstruct(ZZ* a, uint64_t* ra, long np, const ZZ& q){
+	multiplier.reconstruct(a, ra, np, q);
 }
 
 void Ring::square(ZZ* x, ZZ* a, long np, const ZZ& q) {

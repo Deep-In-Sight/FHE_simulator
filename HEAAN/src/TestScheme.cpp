@@ -263,20 +263,36 @@ void TestScheme::testMultByVec(long logq, long logp, long logn) {
 
 	Ciphertext cipher1, cipher2;
 	scheme.encrypt(cipher1, mvec1, n, logp, logq);
-	//scheme.encrypt(cipher1, mvec2, n, logp, logq);
+	scheme.encrypt(cipher2, mvec1, n, logp, logq);
 	//scheme.encrypt(cipher2, mvec2, n, logp, logq);
-
+	
 	timeutils.start("MultByVec");
-	scheme.multByConstVecAndEqual2(cipher1, mvec1, logp);
-	scheme.multByConstVecAndEqual2(cipher1, mvec1, logp);
-	scheme.multByConstVecAndEqual2(cipher1, mvec1, logp);
-	scheme.multByConstVecAndEqual2(cipher1, mvec1, logp);
-	scheme.multByConstVecAndEqual2(cipher1, mvec1, logp);
+	//scheme.dcrt(cipher1, logp);
+
+	ring.CRT(cipher1.ra, cipher1.ax, cipher1.np);
+	ring.CRT(cipher1.rb, cipher1.bx, cipher1.np);
+
 	scheme.multByConstVecAndEqual2(cipher1, mvec2, logp);
-	scheme.multByConstVecAndEqual2(cipher1, mvec2, logp);
-	scheme.multByConstVecAndEqual2(cipher1, mvec2, logp);
-	scheme.multByConstVecAndEqual2(cipher1, mvec2, logp);
-	scheme.multByConstVecAndEqual2(cipher1, mvec2, logp);
+	// scheme.multByConstVecAndEqual2(cipher1, mvec1, logp);
+	// scheme.multByConstVecAndEqual2(cipher1, mvec1, logp);
+	// scheme.multByConstVecAndEqual2(cipher1, mvec1, logp);
+	// scheme.multByConstVecAndEqual2(cipher1, mvec1, logp);
+	// scheme.multByConstVecAndEqual2(cipher1, mvec2, logp);
+	// scheme.multByConstVecAndEqual2(cipher1, mvec2, logp);
+	// scheme.multByConstVecAndEqual2(cipher1, mvec2, logp);
+	// scheme.multByConstVecAndEqual2(cipher1, mvec2, logp);
+	// scheme.multByConstVecAndEqual2(cipher1, mvec2, logp);
+	scheme.INTT(cipher1); 
+	scheme.reconstruct(cipher1);
+
+	
+	
+	scheme.multByConstVecAndEqual(cipher2, mvec2, logp);
+	cout << "CTXT.ra " << endl;
+	for (long i = 0; i < n; i++) {
+		cout << cipher1.ra[i] << " " << cipher2.ra[i] << endl;
+	}
+
 	timeutils.stop("MultByVec");
 
 	complex<double>* dmult = scheme.decrypt(secretKey, cipher1);

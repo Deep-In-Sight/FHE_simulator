@@ -966,21 +966,36 @@ void Scheme::multByPoly(Ciphertext& res, Ciphertext& cipher, ZZ* poly, long logp
 	res.logp += logp;
 }
 
+void Scheme::reconstruct(Ciphertext& cipher){
+	ZZ q = ring.qpows[cipher.logq];
+	ring.reconstruct(cipher.ax, cipher.ra, cipher.np, q);
+	cipher.isCRT = false;
+}
+
+void Scheme::INTT(Ciphertext& cipher){
+	ZZ q = ring.qpows[cipher.logq];
+	ring.INTT(cipher.ra, cipher.np);
+	ring.INTT(cipher.rb, cipher.np);
+	cipher.isNTT = false;
+}
+
 void Scheme::multByPolyAndEqual(Ciphertext& cipher, ZZ* poly, long logp) {
+	/*
+	Todo:
+	- is the size fixed? (np)
+	*/
 	ZZ q = ring.qpows[cipher.logq];
 	long bnd = ring.maxBits(poly, N);
-	long np = ceil((cipher.logq + bnd + logN + 2)/(double)pbnd);
-	uint64_t* rpoly = new uint64_t[np << logN];
-	ring.CRT(rpoly, poly, np);
+	//long np = ceil((cipher.logq + bnd + logN + 2)/(double)pbnd);
+	uint64_t* rpoly = new uint64_t[cipher.np << logN];
+	ring.CRT(rpoly, poly, cipher.np);
 		
 	if (cipher.isCRT) {
-		cipher.ra = 
-		ring.multNoNTT(cipher.ax, rpoly, np, q);
-		ring.multNoNTT(cipher.bx, rpoly, np, q);
-	
+		ring.multNoNTT(cipher.ra, rpoly, cipher.np, q);
+		ring.multNoNTT(cipher.rb, rpoly, cipher.np, q);
 	} else {
-		ring.multNTTAndEqual(cipher.ax, rpoly, np, q);
-		ring.multNTTAndEqual(cipher.bx, rpoly, np, q);
+		ring.multNTTAndEqual(cipher.ax, rpoly, cipher.np, q);
+		ring.multNTTAndEqual(cipher.bx, rpoly, cipher.np, q);
 	}
 	delete[] rpoly;
 	cipher.logp += logp;

@@ -58,6 +58,10 @@ public:
 
 	void multNTTAndEqual(ZZ* a, uint64_t* rb, long np, const ZZ& QQ);
 
+
+	void CRTNTT(uint64_t* ra, uint64_t* rb, long np, const ZZ& mod);
+
+
 	void square(ZZ* x, ZZ* a, long np, const ZZ& QQ);
 
 	void squareNTT(ZZ* x, uint64_t* ra, long np, const ZZ& QQ);

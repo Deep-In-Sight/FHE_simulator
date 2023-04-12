@@ -23,14 +23,6 @@ public:
 	ZZ* ax = new ZZ[N];
 	ZZ* bx = new ZZ[N];
 
-	/* 이런게 필요? 
-	! np는 두 ciphertext의 
-	
-	uint64_t* ra = new uint64_t[np << logN];
-	uint64_t* rb = new uint64_t[np << logN];
-	*/
-
-
 	long logp;
 	long logq;
 	long n;
@@ -42,6 +34,7 @@ public:
 	long bnd = maxBits(cnstPoly, N);
 	long np = ceil((logq + bnd + logN + 2)/(double)pbnd);
 	uint64_t* ra = new uint64_t[np << logN];
+	uint64_t* rb = new uint64_t[np << logN];
 
 
 	Ciphertext(long logp = 0, long logq = 0, long n = 0);

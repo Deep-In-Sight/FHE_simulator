@@ -152,6 +152,7 @@ void RingMultiplier::CRT(uint64_t* rx, ZZ* x, const long np) {
 		for (long n = 0; n < N; ++n) {
 			rxi[n] = _ntl_general_rem_one_struct_apply(x[n].rep, pi, red_ss);
 		}
+		cout << "i" << i << " " << rx[i] << " ";
 		NTT(rxi, i);
 	}
 	NTL_EXEC_RANGE_END;
@@ -298,7 +299,6 @@ void RingMultiplier::multNoNTTAndEqual(uint64_t* ra, uint64_t* rb, long np, cons
 
 	delete[] rx;
 }
-
 
 
 void RingMultiplier::multAndEqual(ZZ* a, ZZ* b, long np, const ZZ& mod) {
