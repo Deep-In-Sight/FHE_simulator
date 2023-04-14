@@ -22,19 +22,31 @@ void testMultByVec(long logq, long logp, long logn) {
 		mmult[i] = mvec1[i] * mvec2[i];
 	}
 
-	Ciphertext cipher1, cipher2;
+	Ciphertext cipher1;
 	scheme.encrypt(cipher1, mvec1, n, logp, logq);
-	scheme.encrypt(cipher2, mvec1, n, logp, logq);
+	cipher1.np = logn;
+	cout << "np: " << logn << endl;
+	cout << "np: " << cipher1.np << endl;
+	Ciphertext cipher2 = Ciphertext(cipher1);
+	//scheme.encrypt(cipher2, mvec1, n, logp, logq);
 	//scheme.encrypt(cipher2, mvec2, n, logp, logq);
 	
 	timeutils.start("MultByVec");
 	//scheme.dcrt(cipher1, logp);
-
+	
 	// ax -> ra, bx -> rb.  CRT + NTT 
+
+	cout << "CHECK SAME" << endl;
+	for (long i = 0; i < 3; i++) {
+		cout << i << " " << cipher1.ax[i] << " " << cipher2.ax[i] << " " << endl;
+	}
+
+	
 	ring.CRT(cipher1.ra, cipher1.ax, cipher1.np);
 	// After CRT and NTT
-	for (long i = 0; i < n; i++) {
-		cout << i << " " << cipher1.ra[i] << " " << cipher2.ra[i] << endl;
+	cout << "CRTCRT" << endl;
+	for (long i = 0; i < 3; i++) {
+		cout << i << " " << cipher1.ra[i] << endl;
 	}
 	//cout << i << " " << cipher1.ra[i] << " " << cipher2.ra[i] << endl;
 	ring.CRT(cipher1.rb, cipher1.bx, cipher1.np);
@@ -67,7 +79,17 @@ void testMultByVec(long logq, long logp, long logn) {
 	// scheme.multByConstVecAndEqual2(cipher1, mvec2, logp);
 	// scheme.multByConstVecAndEqual2(cipher1, mvec2, logp);
 	scheme.INTT(cipher1); 
+	cout << "AFTER INTT" << endl;
+	for (long i = 0; i < 3; i++) {
+		cout << i << " " << cipher1.ra[i] << endl;
+	}
+	
 	scheme.reconstruct(cipher1);
+	
+	cout << "AFTER ICRT" << endl;
+	for (long i = 0; i < 3; i++) {
+		cout << i << " " << cipher1.ax[i] << endl;
+	}
 
 	scheme.multByConstVecAndEqual(cipher2, mvec2, logp);
 	cout << "CTXT.ra " << endl;
@@ -77,9 +99,15 @@ void testMultByVec(long logq, long logp, long logn) {
 
 	timeutils.stop("MultByVec");
 
-	complex<double>* dmult = scheme.decrypt(secretKey, cipher1);
+	complex<double>* dmult1 = scheme.decrypt(secretKey, cipher1);
 
-	StringUtils::compare(mmult, dmult, 3, "mult");
+	cout << "CHECK DMULT1" << endl;
+	StringUtils::compare(mmult, dmult1, 3, "mult");
+
+	cout << "CHECK DMULT2" << endl;
+	complex<double>* dmult2 = scheme.decrypt(secretKey, cipher1);
+
+	StringUtils::compare(mmult, dmult2, 3, "mult");
 
 	cout << "!!! END TEST MULT By Vec !!!" << endl;
 	

@@ -994,7 +994,9 @@ void Scheme::multByPolyAndEqual(Ciphertext& cipher, ZZ* poly, long logp) {
 		ring.multNoNTT(cipher.ra, rpoly, cipher.np, q);
 		ring.multNoNTT(cipher.rb, rpoly, cipher.np, q);
 	} else {
+		cout << "cipher.ax" << endl;
 		ring.multNTTAndEqual(cipher.ax, rpoly, cipher.np, q);
+		cout << "cipher.bx" << endl;
 		ring.multNTTAndEqual(cipher.bx, rpoly, cipher.np, q);
 	}
 	delete[] rpoly;
