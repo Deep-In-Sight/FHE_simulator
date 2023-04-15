@@ -1,7 +1,7 @@
 # This sample should be run after make libHEAAN.a file in lib folder
 
 # All Target
-all: clean TestHEAAN NTT
+all: clean NTT
 
 # Tool invocations
 TestHEAAN:

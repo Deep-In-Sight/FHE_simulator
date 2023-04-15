@@ -41,6 +41,7 @@ public:
 	void INTT(uint64_t* a, long index);
 
 	void CRT(uint64_t* rx, ZZ* x, const long np);
+	void CRT2(uint64_t* rx, ZZ* x, const long np);
 
 	void addNTTAndEqual(uint64_t* ra, uint64_t* rb, const long np);
 

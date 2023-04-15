@@ -101,6 +101,10 @@ void RingMultiplier::NTT(uint64_t* a, long index) {
 	long logt1 = logN + 1;
 	uint64_t p = pVec[index];
 	uint64_t pInv = pInvVec[index];
+	cout << "RM::NTT: t " << t << endl;
+	cout << "RM::NTT: logt1 " << logt1 << endl;
+	cout << "RM::NTT: p " << p << endl;
+	cout << "RM::NTT: pInv " << pInv << endl;
 	for (long m = 1; m < N; m <<= 1) {
 		t >>= 1;
 		logt1 -= 1;
@@ -144,7 +148,9 @@ void RingMultiplier::INTT(uint64_t* a, long index) {
 //----------------------------------------------------------------------------------
 
 void RingMultiplier::CRT(uint64_t* rx, ZZ* x, const long np) {
-	// cout << "CRT" << endl;
+	cout << "RingMultiplier::CRT  np= " << np << endl;
+	cout << "RingMultiplier::CRT  N= " << N << endl;
+	
 	// for (long i = 0; i < 8; i++) {
 	// 	cout << i << " " << x[i] << " " << endl;
 	// }
@@ -153,10 +159,17 @@ void RingMultiplier::CRT(uint64_t* rx, ZZ* x, const long np) {
 	for (long i = first; i < last; ++i) {
 		uint64_t* rxi = rx + (i << logN);
 		uint64_t pi = pVec[i];
+		cout << "thread[" << i << "]" << "RM::CRT: pi " << pi << endl;
 		_ntl_general_rem_one_struct* red_ss = red_ss_array[i];
+		cout << "thread[" << i << "]" << "RM::CRT: red_ss " << red_ss << endl;
 		for (long n = 0; n < N; ++n) {
 			rxi[n] = _ntl_general_rem_one_struct_apply(x[n].rep, pi, red_ss);
+			//cout << "thread[" << i << "], n= " << n << " RM::CRT: red_ss " << red_ss << endl;
+
 		}
+			// for (long j = 0; j < 8; j++) {
+			// cout << j << " " << rx[j] << " " << endl;
+			// }
 		// cout << "after CRT" << endl;
 		// for (long j = 0; j < 8; j++) {
 		// cout << j << " " << rx[j] << " " << endl;
@@ -169,6 +182,44 @@ void RingMultiplier::CRT(uint64_t* rx, ZZ* x, const long np) {
 	}
 	NTL_EXEC_RANGE_END;
 }
+
+void RingMultiplier::CRT2(uint64_t* rx, ZZ* x, const long np) {
+	cout << "RingMultiplier::CRT2  np= " << np << endl;
+	cout << "RingMultiplier::CRT2  N= " << N << endl;
+	
+	// for (long i = 0; i < 8; i++) {
+	// 	cout << i << " " << x[i] << " " << endl;
+	// }
+
+	NTL_EXEC_RANGE(np, first, last);
+	for (long i = first; i < last; ++i) {
+		uint64_t* rxi = rx + (i << logN);
+		uint64_t pi = pVec[i];
+		cout << "thread[" << i << "]" << "RM::CRT: pi " << pi << endl;
+		_ntl_general_rem_one_struct* red_ss = red_ss_array[i];
+		cout << "thread[" << i << "]" << "RM::CRT: red_ss " << red_ss << endl;
+		rxi[52778] = _ntl_general_rem_one_struct_apply(x[52778].rep, pi, red_ss);
+		for (long n = 0; n < N; ++n) {
+			rxi[n] = _ntl_general_rem_one_struct_apply(x[n].rep, pi, red_ss);
+			//cout << "thread[" << i << "], n= " << n << " RM::CRT: red_ss " << red_ss << endl;
+
+		}
+			// for (long j = 0; j < 8; j++) {
+			// cout << j << " " << rx[j] << " " << endl;
+			// }
+		// cout << "after CRT" << endl;
+		// for (long j = 0; j < 8; j++) {
+		// cout << j << " " << rx[j] << " " << endl;
+		// }
+		NTT(rxi, i);
+		// cout << "after NTT" << endl;
+		// for (long j = 0; j < 8; j++) {
+		// cout << j << " " << rx[j] << " " << endl;
+		// }
+	}
+	NTL_EXEC_RANGE_END;
+}
+
 
 void RingMultiplier::addNTTAndEqual(uint64_t* ra, uint64_t* rb, const long np) {
 	for (long i = 0; i < np; ++i) {
@@ -380,6 +431,7 @@ void RingMultiplier::multNTTAndEqual(ZZ* a, uint64_t* rb, long np, const ZZ& mod
 		}
 		if (i==0){
 			cout << "multNTTAndEqual2 after CRT" << endl;
+			cout << "multNTTAndEqual2: pi " << pi << endl;
 			for (long j = 0; j < 8; j++) {
 			cout << j << " " << ra[j] << " " << endl;
 			}

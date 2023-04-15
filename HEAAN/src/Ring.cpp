@@ -326,6 +326,10 @@ void Ring::CRT(uint64_t* rx, ZZ* x, const long np) {
 	multiplier.CRT(rx, x, np);
 }
 
+void Ring::CRT2(uint64_t* rx, ZZ* x, const long np) {
+	multiplier.CRT2(rx, x, np);
+}
+
 void Ring::addNTTAndEqual(uint64_t* ra, uint64_t* rb, const long np) {
 	multiplier.addNTTAndEqual(ra, rb, np);
 }

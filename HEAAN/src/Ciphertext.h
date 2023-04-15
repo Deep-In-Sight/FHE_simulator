@@ -30,6 +30,8 @@ public:
 	bool isNTT = false;
 	bool isCRT = false;
 
+	// np for polymult.
+	// NOT for other operations. 
 	ZZ* cnstPoly = new ZZ[N];
 	long bnd = maxBits(cnstPoly, N);
 	long np = ceil((logq + bnd + logN + 2)/(double)pbnd);
