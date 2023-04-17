@@ -423,7 +423,7 @@ void RingMultiplier::multNTTAndEqual(ZZ* a, uint64_t* rb, long np, const ZZ& mod
 	uint64_t* ra = new uint64_t[np << logN]();
 
 	cout << "multNTTAndEqual" << endl;
-	for (long i = 0; i < 8; i++) {
+	for (long i = 0; i < 3; i++) {
 		cout << i << " " << a[i] << " " << endl; // cipher.ax
 	}
 	NTL_EXEC_RANGE(np, first, last);
@@ -439,7 +439,7 @@ void RingMultiplier::multNTTAndEqual(ZZ* a, uint64_t* rb, long np, const ZZ& mod
 		if (i==0){
 			cout << "multNTTAndEqual2 after CRT" << endl;
 			cout << "multNTTAndEqual2: pi " << pi << endl;
-			for (long j = 0; j < 8; j++) {
+			for (long j = 0; j < 3; j++) {
 			cout << j << " " << ra[j] << " " << endl;
 			}
 		}
@@ -448,7 +448,7 @@ void RingMultiplier::multNTTAndEqual(ZZ* a, uint64_t* rb, long np, const ZZ& mod
 
 		if (i==0){
 			cout << "multNTTAndEqual3_ After NTT" << endl;
-			for (long j = 0; j < 8; j++) {
+			for (long j = 0; j < 3; j++) {
 			cout << j << " " << ra[j] << " " << endl;
 			}
 		}
@@ -458,7 +458,7 @@ void RingMultiplier::multNTTAndEqual(ZZ* a, uint64_t* rb, long np, const ZZ& mod
 		}
 		if (i==0){
 			cout << "multNTTAndEqual4_ After Mult" << endl;
-			for (long j = 0; j < 8; j++) {
+			for (long j = 0; j < 3; j++) {
 			cout << j << " " << ra[j] << " " << endl;
 			}
 		}
@@ -472,8 +472,8 @@ void RingMultiplier::multNTTAndEqual(ZZ* a, uint64_t* rb, long np, const ZZ& mod
 	}
 	NTL_EXEC_RANGE_END;
 
-	//ZZ* pHatnp = pHat[np - 1];
-	//uint64_t* pHatInvModpnp = pHatInvModp[np - 1];
+	// ZZ* pHatnp = pHat[np - 1];
+	// uint64_t* pHatInvModpnp = pHatInvModp[np - 1];
 
 	reconstruct(a, ra, np, mod);
 	cout << "multNTTAndEqual5_ After reconstrut" << endl;

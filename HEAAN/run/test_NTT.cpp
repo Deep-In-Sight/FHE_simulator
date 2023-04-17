@@ -113,7 +113,7 @@ void testMultByVec(long logq, long logp, long logn) {
 	StringUtils::compare(mmult, dmult1, 3, "mult");
 
 	cout << "CHECK DMULT2" << endl;
-	complex<double>* dmult2 = scheme.decrypt(secretKey, cipher1);
+	complex<double>* dmult2 = scheme.decrypt(secretKey, cipher2);
 
 	StringUtils::compare(mmult, dmult2, 3, "mult");
 

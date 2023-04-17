@@ -987,7 +987,6 @@ void Scheme::multByPolyAndEqual(Ciphertext& cipher, ZZ* poly, long logp) {
 	ZZ q = ring.qpows[cipher.logq];
 	long bnd = ring.maxBits(poly, N);
 	long np = ceil((cipher.logq + bnd + logN + 2)/(double)pbnd);
-	//cout << "cipher.np VS poly np: " << cipher.np << " VS " << np << endl;
 	uint64_t* rpoly = new uint64_t[np << logN];
 	ring.CRT(rpoly, poly, np);
 		
