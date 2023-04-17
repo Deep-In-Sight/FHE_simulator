@@ -24,9 +24,6 @@ void testMultByVec(long logq, long logp, long logn) {
 
 	Ciphertext cipher1;
 	scheme.encrypt(cipher1, mvec1, n, logp, logq);
-	cipher1.np = logn;
-	cout << "np: " << logn << endl;
-	cout << "np: " << cipher1.np << endl;
 	Ciphertext cipher2 = Ciphertext(cipher1);
 	//scheme.encrypt(cipher2, mvec1, n, logp, logq);
 	//scheme.encrypt(cipher2, mvec2, n, logp, logq);
@@ -47,16 +44,21 @@ void testMultByVec(long logq, long logp, long logn) {
 	cout << "            Cipher2 Done           \n"  << endl;
 
 
-	
+	if (cipher1.np == 0){
+			cipher1.np = 4;
+			cipher1.ra = new uint64_t[cipher1.np << logN];
+			cipher1.rb = new uint64_t[cipher1.np << logN];
+		}
 	ring.CRT2(cipher1.ra, cipher1.ax, cipher1.np);
 	// After CRT and NTT
 	cout << "CRTCRT" << endl;
 	for (long i = 0; i < 3; i++) {
 		cout << i << " " << cipher1.ra[i] << endl;
 	}
-	cout << flush() << endl;
+	cout << flush << endl;
+	
 	//cout << i << " " << cipher1.ra[i] << " " << cipher2.ra[i] << endl;
-	ring.CRT(cipher1.rb, cipher1.bx, cipher1.np);
+	ring.CRT2(cipher1.rb, cipher1.bx, cipher1.np);
 	cipher1.isCRT = true;
 
 

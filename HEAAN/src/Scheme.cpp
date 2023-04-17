@@ -986,18 +986,24 @@ void Scheme::multByPolyAndEqual(Ciphertext& cipher, ZZ* poly, long logp) {
 	*/
 	ZZ q = ring.qpows[cipher.logq];
 	long bnd = ring.maxBits(poly, N);
-	//long np = ceil((cipher.logq + bnd + logN + 2)/(double)pbnd);
-	uint64_t* rpoly = new uint64_t[cipher.np << logN];
-	ring.CRT(rpoly, poly, cipher.np);
+	long np = ceil((cipher.logq + bnd + logN + 2)/(double)pbnd);
+	//cout << "cipher.np VS poly np: " << cipher.np << " VS " << np << endl;
+	uint64_t* rpoly = new uint64_t[np << logN];
+	ring.CRT(rpoly, poly, np);
 		
 	if (cipher.isCRT) {
-		ring.multNoNTT(cipher.ra, rpoly, cipher.np, q);
-		ring.multNoNTT(cipher.rb, rpoly, cipher.np, q);
+		if (cipher.np == 0){
+			cipher.np = np;
+			cipher.ra = new uint64_t[np << logN];
+			cipher.rb = new uint64_t[np << logN];
+		}
+		ring.multNoNTT(cipher.ra, rpoly, np, q);
+		ring.multNoNTT(cipher.rb, rpoly, np, q);
 	} else {
 		cout << "cipher.ax" << endl;
-		ring.multNTTAndEqual(cipher.ax, rpoly, cipher.np, q);
+		ring.multNTTAndEqual(cipher.ax, rpoly, np, q);
 		cout << "cipher.bx" << endl;
-		ring.multNTTAndEqual(cipher.bx, rpoly, cipher.np, q);
+		ring.multNTTAndEqual(cipher.bx, rpoly, np, q);
 	}
 	delete[] rpoly;
 	cipher.logp += logp;

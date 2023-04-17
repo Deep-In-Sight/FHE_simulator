@@ -30,13 +30,15 @@ public:
 	bool isNTT = false;
 	bool isCRT = false;
 
+	long np = 0;
+
 	// np for polymult.
 	// NOT for other operations. 
-	ZZ* cnstPoly = new ZZ[N];
-	long bnd = maxBits(cnstPoly, N);
-	long np = ceil((logq + bnd + logN + 2)/(double)pbnd);
-	uint64_t* ra = new uint64_t[np << logN];
-	uint64_t* rb = new uint64_t[np << logN];
+	// ZZ* cnstPoly = new ZZ[N];
+	// long bnd = maxBits(cnstPoly, N);
+	// long np = ceil((logq + bnd + logN + 2)/(double)pbnd);
+	uint64_t* ra; //= new uint64_t[np << logN];
+	uint64_t* rb; //= new uint64_t[np << logN];
 
 
 	Ciphertext(long logp = 0, long logq = 0, long n = 0);
