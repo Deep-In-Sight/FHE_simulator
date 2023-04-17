@@ -354,9 +354,12 @@ void Ring::multAndEqual(ZZ* a, ZZ* b, long np, const ZZ& q) {
 	multiplier.multAndEqual(a, b, np, q);
 }
 
-void Ring::INTT(uint64_t* rxi, long np) {
+void Ring::INTT(uint64_t* rx, long np) {
 	NTL_EXEC_RANGE(np, first, last);
+
 	for (long i = first; i < last; ++i) {
+		uint64_t* rxi = rx + (i << logN);
+		cout << "[" << i << "] SHIFT: " << (i << logN) << endl;
 		multiplier.INTT(rxi, i);
 	}
 	NTL_EXEC_RANGE_END;

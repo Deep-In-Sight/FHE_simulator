@@ -187,10 +187,6 @@ void RingMultiplier::CRT2(uint64_t* rx, ZZ* x, const long np) {
 	cout << "RingMultiplier::CRT2  np= " << np << endl;
 	cout << "RingMultiplier::CRT2  N= " << N << endl;
 	
-	// for (long i = 0; i < 8; i++) {
-	// 	cout << i << " " << x[i] << " " << endl;
-	// }
-
 	NTL_EXEC_RANGE(np, first, last);
 	for (long i = first; i < last; ++i) {
 		uint64_t* rxi = rx + (i << logN);
@@ -204,19 +200,7 @@ void RingMultiplier::CRT2(uint64_t* rx, ZZ* x, const long np) {
 
 		for (long n = 0; n < N; ++n) {
 			rxi[n] = _ntl_general_rem_one_struct_apply(x[n].rep, pi, red_ss);
-			//cout << "thread[" << i << "], n= " << n << " RM::CRT: red_ss " << red_ss << endl;
-			//cout << flush << endl;
-
 		}
-			// for (long j = 0; j < 8; j++) {
-			// cout << j << " " << rx[j] << " " << endl;
-			// }
-		// cout << "after CRT" << endl;
-		// for (long j = 0; j < 8; j++) {
-		// cout << j << " " << rx[j] << " " << endl;
-		// }
-		//cout << "thread[" << i << "]" << "RM::CRT2: before NTT " << red_ss << endl;
-		//cout << flush << endl;
 
 		NTT(rxi, i);
 		// cout << "after NTT" << endl;
@@ -358,7 +342,7 @@ void RingMultiplier::multNoNTTAndEqual(uint64_t* ra, uint64_t* rb, long np, cons
 
 
 	cout << "NONTT 1" << endl;
-	for (long j = 0; j < 8; j++) {
+	for (long j = 0; j < 3; j++) {
 	cout << j << " " << ra[j] << " " << endl;
 	}
 
@@ -367,14 +351,17 @@ void RingMultiplier::multNoNTTAndEqual(uint64_t* ra, uint64_t* rb, long np, cons
 		uint64_t* rai = ra + (i << logN);
 		uint64_t* rbi = rb + (i << logN);
 		uint64_t* rxi = rx + (i << logN); // Skip first N elements (shift pointer by N)
+		cout << "[" << i << "] SHIFT: " << (i << logN) << endl;
 		uint64_t pi = pVec[i];
 		uint64_t pri = prVec[i];
 		for (long n = 0; n < N; ++n) {
 			mulModBarrett(rai[n], rai[n], rbi[n], pi, pri);
 		}
-		cout << "NONTT after Mult" << endl;
-		for (long j = 0; j < 8; j++) {
-		cout << j << " " << ra[j] << " " << endl;
+		if (i==0) {
+			cout << "NONTT after Mult" << endl;
+			for (long j = 0; j < 3; j++) {
+			cout << j << " " << ra[j] << " " << endl;
+			}
 		}
 		//INTT(rxi, i);
 	}
