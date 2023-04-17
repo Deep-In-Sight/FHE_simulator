@@ -148,13 +148,9 @@ void RingMultiplier::INTT(uint64_t* a, long index) {
 //----------------------------------------------------------------------------------
 
 void RingMultiplier::CRT(uint64_t* rx, ZZ* x, const long np) {
-	cout << "RingMultiplier::CRT  np= " << np << endl;
-	cout << "RingMultiplier::CRT  N= " << N << endl;
+	// cout << "RingMultiplier::CRT  np= " << np << endl;
+	// cout << "RingMultiplier::CRT  N= " << N << endl;
 	
-	// for (long i = 0; i < 8; i++) {
-	// 	cout << i << " " << x[i] << " " << endl;
-	// }
-
 	NTL_EXEC_RANGE(np, first, last);
 	for (long i = first; i < last; ++i) {
 		uint64_t* rxi = rx + (i << logN);

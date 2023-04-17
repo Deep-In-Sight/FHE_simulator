@@ -17,127 +17,86 @@ void testMultByVec(long logq, long logp, long logn) {
 	long n = (1 << logn);
 	complex<double>* mvec1 = EvaluatorUtils::randomComplexArray(n);
 	complex<double>* mvec2 = EvaluatorUtils::randomComplexArray(n);
+	complex<double>* mvec3 = EvaluatorUtils::randomComplexArray(n);
 	complex<double>* mmult = new complex<double>[n];
+	
+	// Multiply three times
 	for(long i = 0; i < n; i++) {
 		mmult[i] = mvec1[i] * mvec2[i];
-	}
-
-	for(long i = 0; i < 3; i++) {
-		cout << "MULT result: " << mmult[i] << endl;
 	}
 
 	for(long i = 0; i < n; i++) {
 		mmult[i] = mmult[i] * mvec2[i];
 	}
 
+	for(long i = 0; i < n; i++) {
+		mmult[i] = mmult[i] * mvec3[i];
+	}
+
 	Ciphertext cipher1;
 	scheme.encrypt(cipher1, mvec1, n, logp, logq);
 	Ciphertext cipher2 = Ciphertext(cipher1);
-	//scheme.encrypt(cipher2, mvec1, n, logp, logq);
-	//scheme.encrypt(cipher2, mvec2, n, logp, logq);
 	
 	timeutils.start("MultByVec");
-	
-	// ax -> ra, bx -> rb.  CRT + NTT 
-
-	// cout << "CHECK SAME" << endl;
-	// for (long i = 0; i < 3; i++) {
-	// 	cout << i << " " << cipher1.ax[i] << " " << cipher2.ax[i] << " " << endl;
-	// }
-	// cout << "            Check  done           \n"  << endl;
 
 	// TARGET
 	scheme.multByConstVecAndEqual(cipher2, mvec2, logp);
-	// Mult twice
+	scheme.reScaleByAndEqual(cipher2, logp);
+	cout << cipher2.logp << "  " << cipher2.logq << endl;
+	
 	scheme.multByConstVecAndEqual(cipher2, mvec2, logp);
-	//scheme.multByConstVecAndEqual(cipher2, mvec2, logp);
+	scheme.reScaleByAndEqual(cipher2, logp);
+	cout << cipher2.logp << "  " << cipher2.logq << endl;	
 
+	scheme.multByConstVecAndEqual(cipher2, mvec3, logp);
 	timeutils.stop("MultByVec");
-
 	cout << "            Cipher2 Done           \n\n"  << endl;
 
 
-
-
 	timeutils.start("MultByVec 22");
+	// ax -> ra, bx -> rb.  CRT + NTT 
 	if (cipher1.np == 0){
-			cipher1.np = 4;
+			cipher1.np = 5;
 			cipher1.ra = new uint64_t[cipher1.np << logN];
 			cipher1.rb = new uint64_t[cipher1.np << logN];
 		}
 
 	ring.CRT2(cipher1.ra, cipher1.ax, cipher1.np);
-	// After CRT and NTT
-	// cout << "CRTCRT" << endl;
-	// for (long i = 0; i < 3; i++) {
-	// 	cout << i << " " << cipher1.ra[i] << endl;
-	// }
-	// cout << flush << endl;
-	
-	//cout << i << " " << cipher1.ra[i] << " " << cipher2.ra[i] << endl;
 	ring.CRT2(cipher1.rb, cipher1.bx, cipher1.np);
 	cipher1.isCRT = true;
 
-
-
-	// uint64_t* rai = cipher1.ra + (i << logN);
-	// uint64_t* rbi = cipher1.rb + (i << logN);
-	// uint64_t pi = pVec[i];
-	// uint64_t pri = prVec[i];
-	// _ntl_general_rem_one_struct* red_ss = red_ss_array[i];
-	// for (long n = 0; n < N; ++n) {
-	// 	rai[n] = _ntl_general_rem_one_struct_apply(a[n].rep, pi, red_ss);
-	// 	rbi[n] = _ntl_general_rem_one_struct_apply(b[n].rep, pi, red_ss);
-	// }
-	// RingMultiplier.NTT(rai, i);
-	// ring.NTT(rbi, i);
-	cout << " ---- ring.CRT done -----";
-
-
+	// Can't use rescale functions 
+	// Since valuess are not in .ax, .bx. 
 	scheme.multByConstVecAndEqual2(cipher1, mvec2, logp);
-	scheme.multByConstVecAndEqual2(cipher1, mvec2, logp);
-	//scheme.multByConstVecAndEqual2(cipher1, mvec2, logp);
-	// scheme.multByConstVecAndEqual2(cipher1, mvec1, logp);
-	// scheme.multByConstVecAndEqual2(cipher1, mvec1, logp);
-	// scheme.multByConstVecAndEqual2(cipher1, mvec1, logp);
-	// scheme.multByConstVecAndEqual2(cipher1, mvec2, logp);
-	// scheme.multByConstVecAndEqual2(cipher1, mvec2, logp);
-	// scheme.multByConstVecAndEqual2(cipher1, mvec2, logp);
-	// scheme.multByConstVecAndEqual2(cipher1, mvec2, logp);
-	// scheme.multByConstVecAndEqual2(cipher1, mvec2, logp);
-	scheme.INTT(cipher1);
-
-	// cout << "AFTER INTT" << endl;
-	// for (long i = 0; i < 3; i++) {
-	// 	cout << i << " " << cipher1.ra[i] << endl;
-	// }
 	
-	scheme.reconstruct(cipher1);
+	cout << cipher1.logp << "  " << cipher1.logq << endl;
 
+	//scheme.reScaleByAndEqual(cipher1, logp);
+	//cout << cipher1.logp << "  " << cipher1.logq << endl;
+	
+	scheme.multByConstVecAndEqual2(cipher1, mvec2, logp);
+
+	cout << cipher1.logp << "  " << cipher1.logq << endl;
+	//scheme.reScaleByAndEqual(cipher1, logp);
+	
+	scheme.multByConstVecAndEqual2(cipher1, mvec3, logp);
+	// scheme.multByConstVecAndEqual2(cipher1, mvec2, logp);
+	// scheme.multByConstVecAndEqual2(cipher1, mvec2, logp);
+	// scheme.multByConstVecAndEqual2(cipher1, mvec2, logp);
+	// scheme.multByConstVecAndEqual2(cipher1, mvec2, logp);
+	
+	// INTT + ICRT
+	scheme.INTT(cipher1);
+	scheme.reconstruct(cipher1);
 	timeutils.stop("MultByVec 22");
 	
-	// cout << "AFTER ICRT" << endl;
-	// for (long i = 0; i < 3; i++) {
-	// 	cout << i << " " << cipher1.ax[i] << endl;
-	// }
-
-	// cout << "CTXT.ax " << endl;
-	// for (long i = 0; i < 3; i++) {
-	// 	cout << i << " " << cipher1.ax[i] << " " << cipher2.ax[i] << endl;
-	// }
-
-	// cout << "CTXT.bx " << endl;
-	// for (long i = 0; i < 3; i++) {
-	// 	cout << i << " " << cipher1.bx[i] << " " << cipher2.bx[i] << endl;
-	// }
-
-	
-
 	complex<double>* dmult1 = scheme.decrypt(secretKey, cipher1);
 
+	// Non-conversion Ver.
 	cout << "CHECK DMULT1" << endl;
 	StringUtils::compare(mmult, dmult1, 3, "mult");
 
+	// Original Ver.
 	cout << "CHECK DMULT2" << endl;
 	complex<double>* dmult2 = scheme.decrypt(secretKey, cipher2);
 
@@ -149,7 +108,7 @@ void testMultByVec(long logq, long logp, long logn) {
 
 
 int main(int argc, char **argv) {
-    long logq = 120; ///< Ciphertext Modulus
+    long logq = 150; ///< Ciphertext Modulus
 	long logp = 30; ///< Real message will be quantized by multiplying 2^40
 	long logn = 15; ///< log2(The number of slots)
     testMultByVec(logq, logp, logn);
