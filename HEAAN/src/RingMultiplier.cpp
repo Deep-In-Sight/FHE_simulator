@@ -245,7 +245,11 @@ void RingMultiplier::reconstruct(ZZ* x, uint64_t* rx, long np, const ZZ& q) {
 			mulmod_precon_t ttpinv = coeffpinv_arraynp[i];
 			long s = MulModPrecon(rx[n + (i << logN)], tt, p, ttpinv);
 			QuickAccumMulAdd(acc, pHatnp[i], s);
+			if (n == first) {
+				cout << "[" << i << "] recon s " << s << endl;
+			}
 		}
+		
 		QuickAccumEnd(acc);
 		rem(x[n], x[n], pProdnp);
 		if (x[n] > pProdhnp) x[n] -= pProdnp;
@@ -452,7 +456,7 @@ void RingMultiplier::multNTTAndEqual(ZZ* a, uint64_t* rb, long np, const ZZ& mod
 		INTT(rai, i);
 		if (i==0){
 			cout << "multNTTAndEqual5_ After INTT" << endl;
-			for (long j = 0; j < 8; j++) {
+			for (long j = 0; j < 3; j++) {
 			cout << j << " " << ra[j] << " " << endl;
 			}
 		}

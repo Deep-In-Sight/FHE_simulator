@@ -41,7 +41,7 @@ void testMultByVec(long logq, long logp, long logn) {
 
 	// TARGET
 	scheme.multByConstVecAndEqual(cipher2, mvec2, logp);
-	cout << "            Cipher2 Done           \n"  << endl;
+	cout << "            Cipher2 Done           \n\n"  << endl;
 
 
 	if (cipher1.np == 0){
@@ -74,7 +74,7 @@ void testMultByVec(long logq, long logp, long logn) {
 	// }
 	// RingMultiplier.NTT(rai, i);
 	// ring.NTT(rbi, i);
-	cout << " ---- ring.CRT done ----- \n";
+	cout << " ---- ring.CRT done -----";
 
 
 	scheme.multByConstVecAndEqual2(cipher1, mvec2, logp);
@@ -87,7 +87,8 @@ void testMultByVec(long logq, long logp, long logn) {
 	// scheme.multByConstVecAndEqual2(cipher1, mvec2, logp);
 	// scheme.multByConstVecAndEqual2(cipher1, mvec2, logp);
 	// scheme.multByConstVecAndEqual2(cipher1, mvec2, logp);
-	scheme.INTT(cipher1); 
+	scheme.INTT(cipher1);
+
 	cout << "AFTER INTT" << endl;
 	for (long i = 0; i < 3; i++) {
 		cout << i << " " << cipher1.ra[i] << endl;
@@ -100,9 +101,14 @@ void testMultByVec(long logq, long logp, long logn) {
 		cout << i << " " << cipher1.ax[i] << endl;
 	}
 
-	cout << "CTXT.ra " << endl;
-	for (long i = 0; i < n; i++) {
+	cout << "CTXT.ax " << endl;
+	for (long i = 0; i < 3; i++) {
 		cout << i << " " << cipher1.ax[i] << " " << cipher2.ax[i] << endl;
+	}
+
+	cout << "CTXT.bx " << endl;
+	for (long i = 0; i < 3; i++) {
+		cout << i << " " << cipher1.bx[i] << " " << cipher2.bx[i] << endl;
 	}
 
 	timeutils.stop("MultByVec");

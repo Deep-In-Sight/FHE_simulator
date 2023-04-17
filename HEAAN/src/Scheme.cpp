@@ -969,6 +969,7 @@ void Scheme::multByPoly(Ciphertext& res, Ciphertext& cipher, ZZ* poly, long logp
 void Scheme::reconstruct(Ciphertext& cipher){
 	ZZ q = ring.qpows[cipher.logq];
 	ring.reconstruct(cipher.ax, cipher.ra, cipher.np, q);
+	ring.reconstruct(cipher.bx, cipher.rb, cipher.np, q);
 	cipher.isCRT = false;
 }
 
