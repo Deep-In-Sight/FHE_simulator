@@ -227,10 +227,10 @@ void RingMultiplier::addNTTAndEqual(uint64_t* ra, uint64_t* rb, const long np) {
 void RingMultiplier::reconstruct(ZZ* x, uint64_t* rx, long np, const ZZ& q) {
 	ZZ* pHatnp = pHat[np - 1];
 	uint64_t* pHatInvModpnp = pHatInvModp[np - 1];
-	cout << "reconstruct" << endl;
-	cout << "np = " << np << endl;
-	cout << "q = " << q << endl;
-	cout << "pHatnp= " << pHatnp[0] << endl;
+	// cout << "reconstruct" << endl;
+	// cout << "np = " << np << endl;
+	// cout << "q = " << q << endl;
+	// cout << "pHatnp= " << pHatnp[0] << endl;
 
 	mulmod_precon_t* coeffpinv_arraynp = coeffpinv_array[np - 1];
 	ZZ& pProdnp = pProd[np - 1];
@@ -245,9 +245,9 @@ void RingMultiplier::reconstruct(ZZ* x, uint64_t* rx, long np, const ZZ& q) {
 			mulmod_precon_t ttpinv = coeffpinv_arraynp[i];
 			long s = MulModPrecon(rx[n + (i << logN)], tt, p, ttpinv);
 			QuickAccumMulAdd(acc, pHatnp[i], s);
-			if (n == first) {
-				cout << "[" << i << "] recon s " << s << endl;
-			}
+			// if (n == first) {
+			// 	cout << "[" << i << "] recon s " << s << endl;
+			// }
 		}
 		
 		QuickAccumEnd(acc);
@@ -345,28 +345,28 @@ void RingMultiplier::multNoNTTAndEqual(uint64_t* ra, uint64_t* rb, long np, cons
 	uint64_t* rx = new uint64_t[np << logN]();
 
 
-	cout << "NONTT 1" << endl;
-	for (long j = 0; j < 3; j++) {
-	cout << j << " " << ra[j] << " " << endl;
-	}
+	// cout << "NONTT 1" << endl;
+	// for (long j = 0; j < 3; j++) {
+	// cout << j << " " << ra[j] << " " << endl;
+	// }
 
 	NTL_EXEC_RANGE(np, first, last);
 	for (long i = first; i < last; ++i) {
 		uint64_t* rai = ra + (i << logN);
 		uint64_t* rbi = rb + (i << logN);
 		uint64_t* rxi = rx + (i << logN); // Skip first N elements (shift pointer by N)
-		cout << "[" << i << "] SHIFT: " << (i << logN) << endl;
+		//cout << "[" << i << "] SHIFT: " << (i << logN) << endl;
 		uint64_t pi = pVec[i];
 		uint64_t pri = prVec[i];
 		for (long n = 0; n < N; ++n) {
 			mulModBarrett(rai[n], rai[n], rbi[n], pi, pri);
 		}
-		if (i==0) {
-			cout << "NONTT after Mult" << endl;
-			for (long j = 0; j < 3; j++) {
-			cout << j << " " << ra[j] << " " << endl;
-			}
-		}
+		// if (i==0) {
+		// 	cout << "NONTT after Mult" << endl;
+		// 	for (long j = 0; j < 3; j++) {
+		// 	cout << j << " " << ra[j] << " " << endl;
+		// 	}
+		// }
 		//INTT(rxi, i);
 	}
 	NTL_EXEC_RANGE_END;
@@ -413,10 +413,10 @@ void RingMultiplier::multAndEqual(ZZ* a, ZZ* b, long np, const ZZ& mod) {
 void RingMultiplier::multNTTAndEqual(ZZ* a, uint64_t* rb, long np, const ZZ& mod) {
 	uint64_t* ra = new uint64_t[np << logN]();
 
-	cout << "multNTTAndEqual" << endl;
-	for (long i = 0; i < 3; i++) {
-		cout << i << " " << a[i] << " " << endl; // cipher.ax
-	}
+	// cout << "multNTTAndEqual" << endl;
+	// for (long i = 0; i < 3; i++) {
+	// 	cout << i << " " << a[i] << " " << endl; // cipher.ax
+	// }
 	NTL_EXEC_RANGE(np, first, last);
 	for (long i = first; i < last; ++i) {
 		uint64_t* rai = ra + (i << logN); // N elements per thread
@@ -427,39 +427,38 @@ void RingMultiplier::multNTTAndEqual(ZZ* a, uint64_t* rb, long np, const ZZ& mod
 		for (long n = 0; n < N; ++n) {
 			rai[n] = _ntl_general_rem_one_struct_apply(a[n].rep, pi, red_ss);
 		}
-		if (i==0){
-			cout << "multNTTAndEqual2 after CRT" << endl;
-			cout << "multNTTAndEqual2: pi " << pi << endl;
-			for (long j = 0; j < 3; j++) {
-			cout << j << " " << ra[j] << " " << endl;
-			}
-		}
+		// if (i==0){
+		// 	cout << "multNTTAndEqual2 after CRT" << endl;
+		// 	cout << "multNTTAndEqual2: pi " << pi << endl;
+		// 	for (long j = 0; j < 3; j++) {
+		// 	cout << j << " " << ra[j] << " " << endl;
+		// 	}
+		// }
 		
 		NTT(rai, i);
-
-		if (i==0){
-			cout << "multNTTAndEqual3_ After NTT" << endl;
-			for (long j = 0; j < 3; j++) {
-			cout << j << " " << ra[j] << " " << endl;
-			}
-		}
+		// if (i==0){
+		// 	cout << "multNTTAndEqual3_ After NTT" << endl;
+		// 	for (long j = 0; j < 3; j++) {
+		// 	cout << j << " " << ra[j] << " " << endl;
+		// 	}
+		// }
 
 		for (long n = 0; n < N; ++n) {
 			mulModBarrett(rai[n], rai[n], rbi[n], pi, pri);
 		}
-		if (i==0){
-			cout << "multNTTAndEqual4_ After Mult" << endl;
-			for (long j = 0; j < 3; j++) {
-			cout << j << " " << ra[j] << " " << endl;
-			}
-		}
+		// if (i==0){
+		// 	cout << "multNTTAndEqual4_ After Mult" << endl;
+		// 	for (long j = 0; j < 3; j++) {
+		// 	cout << j << " " << ra[j] << " " << endl;
+		// 	}
+		// }
 		INTT(rai, i);
-		if (i==0){
-			cout << "multNTTAndEqual5_ After INTT" << endl;
-			for (long j = 0; j < 3; j++) {
-			cout << j << " " << ra[j] << " " << endl;
-			}
-		}
+		// if (i==0){
+		// 	cout << "multNTTAndEqual5_ After INTT" << endl;
+		// 	for (long j = 0; j < 3; j++) {
+		// 	cout << j << " " << ra[j] << " " << endl;
+		// 	}
+		// }
 	}
 	NTL_EXEC_RANGE_END;
 
@@ -467,10 +466,10 @@ void RingMultiplier::multNTTAndEqual(ZZ* a, uint64_t* rb, long np, const ZZ& mod
 	// uint64_t* pHatInvModpnp = pHatInvModp[np - 1];
 
 	reconstruct(a, ra, np, mod);
-	cout << "multNTTAndEqual5_ After reconstrut" << endl;
-		for (long j = 0; j < 8; j++) {
-		cout << j << " " << a[j] << " " << endl;
-	}
+	// cout << "multNTTAndEqual5_ After reconstrut" << endl;
+	// 	for (long j = 0; j < 8; j++) {
+	// 	cout << j << " " << a[j] << " " << endl;
+	// }
 
 	delete[] ra;
 }

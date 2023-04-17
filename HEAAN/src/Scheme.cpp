@@ -1000,9 +1000,7 @@ void Scheme::multByPolyAndEqual(Ciphertext& cipher, ZZ* poly, long logp) {
 		ring.multNoNTT(cipher.ra, rpoly, np, q);
 		ring.multNoNTT(cipher.rb, rpoly, np, q);
 	} else {
-		cout << "cipher.ax" << endl;
 		ring.multNTTAndEqual(cipher.ax, rpoly, np, q);
-		cout << "cipher.bx" << endl;
 		ring.multNTTAndEqual(cipher.bx, rpoly, np, q);
 	}
 	delete[] rpoly;

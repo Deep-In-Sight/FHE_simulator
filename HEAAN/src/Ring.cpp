@@ -359,7 +359,7 @@ void Ring::INTT(uint64_t* rx, long np) {
 
 	for (long i = first; i < last; ++i) {
 		uint64_t* rxi = rx + (i << logN);
-		cout << "[" << i << "] SHIFT: " << (i << logN) << endl;
+		//cout << "[" << i << "] SHIFT: " << (i << logN) << endl;
 		multiplier.INTT(rxi, i);
 	}
 	NTL_EXEC_RANGE_END;
