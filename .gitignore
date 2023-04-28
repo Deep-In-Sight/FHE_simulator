@@ -21,3 +21,5 @@ __pycache__/*
 HEAAN/lib/src/*
 HEAAN/lib/libHEAAN.a
 *.txt
+third_party/gmp-6.2.1/*
+third_party/ntl-11.5.1/*
