@@ -32,5 +32,4 @@ make check  # optional
 
 `conda install ipython numpy jupyter pybind11 scipy scikit-learn tqdm matplotlib`  
 `pip install torch torchvision torchaudio`   
-`pip install mediapipe`   
 `pip install opencv-python pyqt5`  
