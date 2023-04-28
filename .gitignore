@@ -4,6 +4,7 @@ build/*
 *.egg*
 *.so
 *.o
+*.d
 *.swp
 *.pickle
 *checkpoint.ipynb
