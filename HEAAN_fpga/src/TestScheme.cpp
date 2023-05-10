@@ -32,7 +32,7 @@ using namespace NTL;
 void TestScheme::testEncrypt(long logq, long logp, long logn) {
 	cout << "!!! START TEST ENCRYPT !!!" << endl;
 	srand(time(NULL));
-	//SetNumThreads(8);
+	SetNumThreads(8);
 	TimeUtils timeutils;
 	Ring ring;
 	SecretKey secretKey(ring);
@@ -58,7 +58,7 @@ void TestScheme::testEncrypt(long logq, long logp, long logn) {
 void TestScheme::testEncryptBySk(long logq, long logp, long logn) {
 	cout << "!!! START TEST ENCRYPT by SK !!!" << endl;
 	srand(time(NULL));
-	//SetNumThreads(8);
+	SetNumThreads(8);
 	TimeUtils timeutils;
 	Ring ring;
 	SecretKey secretKey(ring);
@@ -88,7 +88,7 @@ void TestScheme::testDecryptForShare(long logq, long logp, long logn, long logEr
 	
 	cout << "Note : encryption std is changed to sigma1 = " << sigma1 << endl;
 	srand(time(NULL));
-	//SetNumThreads(8);
+	SetNumThreads(8);
 	TimeUtils timeutils;
 	Ring ring;
 	SecretKey secretKey(ring);
@@ -123,7 +123,7 @@ void TestScheme::testDecryptForShare(long logq, long logp, long logn, long logEr
 void TestScheme::testEncryptSingle(long logq, long logp) {
 	cout << "!!! START TEST ENCRYPT SINGLE !!!" << endl;
 	srand(time(NULL));
-	//SetNumThreads(8);
+	SetNumThreads(8);
 	TimeUtils timeutils;
 	Ring ring;
 	SecretKey secretKey(ring);
@@ -147,7 +147,7 @@ void TestScheme::testAdd(long logq, long logp, long logn) {
 	cout << "!!! START TEST ADD !!!" << endl;
 
 	srand(time(NULL));
-	//SetNumThreads(8);
+	SetNumThreads(8);
 	TimeUtils timeutils;
 	Ring ring;
 	SecretKey secretKey(ring);
@@ -181,7 +181,7 @@ void TestScheme::testMult(long logq, long logp, long logn) {
 	cout << "!!! START TEST MULT !!!" << endl;
 
 	srand(time(NULL));
-	//SetNumThreads(8);
+	SetNumThreads(8);
 	TimeUtils timeutils;
 	Ring ring;
 	SecretKey secretKey(ring);
@@ -214,7 +214,7 @@ void TestScheme::testiMult(long logq, long logp, long logn) {
 	cout << "!!! START TEST i MULTIPLICATION !!!" << endl;
 
 	srand(time(NULL));
-	//SetNumThreads(8);
+	SetNumThreads(8);
 	TimeUtils timeutils;
 	Ring ring;
 	SecretKey secretKey(ring);
@@ -253,7 +253,7 @@ void TestScheme::testRotateFast(long logq, long logp, long logn, long logr) {
 	cout << "!!! START TEST ROTATE FAST !!!" << endl;
 
 	srand(time(NULL));
-	//SetNumThreads(8);
+	SetNumThreads(8);
 	TimeUtils timeutils;
 	Ring ring;
 	SecretKey secretKey(ring);
@@ -282,7 +282,7 @@ void TestScheme::testConjugate(long logq, long logp, long logn) {
 	cout << "!!! START TEST CONJUGATE !!!" << endl;
 
 	srand(time(NULL));
-	//SetNumThreads(8);
+	SetNumThreads(8);
 	TimeUtils timeutils;
 	Ring ring;
 	SecretKey secretKey(ring);
@@ -321,7 +321,7 @@ void TestScheme::testPowerOf2(long logq, long logp, long logn, long logdeg) {
 	cout << "!!! START TEST POWER OF 2 !!!" << endl;
 
 	srand(time(NULL));
-	//SetNumThreads(8);
+	SetNumThreads(8);
 	TimeUtils timeutils;
 	Ring ring;
 	SecretKey secretKey(ring);
@@ -356,7 +356,7 @@ void TestScheme::testPower(long logq, long logp, long logn, long degree) {
 	cout << "!!! START TEST POWER !!!" << endl;
 
 	srand(time(NULL));
-	//SetNumThreads(8);
+	SetNumThreads(8);
 	TimeUtils timeutils;
 	Ring ring;
 	SecretKey secretKey(ring);
@@ -393,7 +393,7 @@ void TestScheme::testInverse(long logq, long logp, long logn, long steps) {
 	cout << "!!! START TEST INVERSE !!!" << endl;
 
 	srand(time(NULL));
-	//SetNumThreads(8);
+	SetNumThreads(8);
 	TimeUtils timeutils;
 	Ring ring;
 	SecretKey secretKey(ring);
@@ -424,7 +424,7 @@ void TestScheme::testLogarithm(long logq, long logp, long logn, long degree) {
 	cout << "!!! START TEST LOGARITHM !!!" << endl;
 
 	srand(time(NULL));
-	//SetNumThreads(8);
+	SetNumThreads(8);
 	TimeUtils timeutils;
 	Ring ring;
 	SecretKey secretKey(ring);
@@ -455,7 +455,7 @@ void TestScheme::testExponent(long logq, long logp, long logn, long degree) {
 	cout << "!!! START TEST EXPONENT !!!" << endl;
 
 	srand(time(NULL));
-	//SetNumThreads(8);
+	SetNumThreads(8);
 	TimeUtils timeutils;
 	Ring ring;
 	SecretKey secretKey(ring);
@@ -486,7 +486,7 @@ void TestScheme::testExponentLazy(long logq, long logp, long logn, long degree) 
 	cout << "!!! START TEST EXPONENT LAZY !!!" << endl;
 
 	srand(time(NULL));
-	//SetNumThreads(8);
+	SetNumThreads(8);
 	TimeUtils timeutils;
 	Ring ring;
 	SecretKey secretKey(ring);
@@ -518,7 +518,7 @@ void TestScheme::testSigmoid(long logq, long logp, long logn, long degree) {
 	cout << "!!! START TEST SIGMOID !!!" << endl;
 
 	srand(time(NULL));
-	//SetNumThreads(8);
+	SetNumThreads(8);
 	TimeUtils timeutils;
 	Ring ring;
 	SecretKey secretKey(ring);
@@ -583,100 +583,20 @@ void TestScheme::testSigmoidLazy(long logq, long logp, long logn, long degree) {
 
 void TestScheme::testWriteAndRead(long logq, long logp, long logSlots) {
 	cout << "!!! START TEST WRITE AND READ !!!" << endl;
-    srand(time(NULL));
-	//SetNumThreads(8);
-	TimeUtils timeutils;
-	Ring ring;
-	SecretKey secretKey(ring);
-    Scheme scheme(secretKey, ring, true);
-
-    Ring ring2;
-    cout << "ring2" << std::endl;
-	Scheme scheme2(ring2, true);
-	long n = (1 << logSlots);
-
-	complex<double>* mvec = EvaluatorUtils::randomComplexArray(n);
-	Ciphertext cipher;
-
-	timeutils.start("Encrypt");
-	scheme2.encrypt(cipher, mvec, n, logp, logq);
-	timeutils.stop("Encrypt");
-
-	timeutils.start("Decrypt");
-	complex<double>* dvec = scheme.decrypt(secretKey, cipher);
-	timeutils.stop("Decrypt");
-
-	StringUtils::compare(mvec, dvec, n, "val");
 
 	cout << "!!! END TEST WRITE AND READ !!!" << endl;
-
-	/*****************************************************/
-
-	complex<double>* imvec = new complex<double>[n];
-	for (long i = 0; i < n; ++i) {
-		imvec[i].real(-mvec[i].imag());
-		imvec[i].imag(mvec[i].real());
-	}
-
-	scheme.encrypt(cipher, mvec, n, logp, logq);
-	
-	timeutils.start("Multiplication by i");
-	scheme2.imultAndEqual(cipher);
-	timeutils.stop("Multiplication by i");
-
-	complex<double>* idvec = scheme.decrypt(secretKey, cipher);
-
-	StringUtils::compare(imvec, idvec, n, "imult");
-
-	cout << "!!! END TEST MULT !!!" << endl;
-
-	/*****************************************************/
-
-	//long r = (1 << 4);
-	long r =0;
-
-	cout << "Generating LeftRotkey " << std::endl;
-	scheme.addLeftRotKey(secretKey, r);
-	
-
-	cout << "Loading LeftRotkey " << std::endl;
-	scheme2.loadLeftRotKey(r);
-	scheme2.encrypt(cipher, mvec, n, logp, logq);
-	
-	//dvec = scheme.decrypt(secretKey, cipher);
-	//StringUtils::compare(mvec, dvec, n, "val");
-
-	timeutils.start("Left Rotate Fast");
-	scheme2.leftRotateFastAndEqual(cipher, r);
-	timeutils.stop("Left Rotate Fast");
-
-	complex<double>* dvec2 = scheme.decrypt(secretKey, cipher);
-
-	EvaluatorUtils::leftRotateAndEqual(mvec, n, r);
-	StringUtils::compare(mvec, dvec2, n, "rot");
-
-	cout << "!!! END TEST ROTATE BY POWER OF 2 BATCH !!!" << endl;
-
 }
 
 
 void TestScheme::testBootstrap(long logq, long logp, long logSlots, long logT) {
 	cout << "!!! START TEST BOOTSTRAP !!!" << endl;
 
-	
 	srand(time(NULL));
-	//SetNumThreads(8);
+	SetNumThreads(8);
 	TimeUtils timeutils;
 	Ring ring;
 	SecretKey secretKey(ring);
 	Scheme scheme(secretKey, ring);
-
-	cout << "ddddddddddddd" << endl;
-	ring.addBootContext(logSlots, logp);
-
-	cout << "ddddddddddddd222" << endl;
-	scheme.addConjKey(secretKey);
-
 
 	timeutils.start("Key generating");
 	scheme.addBootKey(secretKey, logSlots, logq + 4);
@@ -692,8 +612,6 @@ void TestScheme::testBootstrap(long logq, long logp, long logSlots, long logT) {
 
 	scheme.modDownToAndEqual(cipher, logq);
 	scheme.normalizeAndEqual(cipher);
-
-    cout << "logQ " << logQ << endl;
 	cipher.logq = logQ;
 	cipher.logp = logq + 4;
 
@@ -723,7 +641,7 @@ void TestScheme::testBootstrap(long logq, long logp, long logSlots, long logT) {
 
 	complex<double>* dvec = scheme.decrypt(secretKey, cipher);
 
-	//StringUtils::compare(mvec, dvec, slots, "boot");
+	StringUtils::compare(mvec, dvec, slots, "boot");
 
 	cout << "!!! END TEST BOOTSRTAP !!!" << endl;
 }
@@ -732,7 +650,7 @@ void TestScheme::testBootstrapSingleReal(long logq, long logp, long logT) {
 	cout << "!!! START TEST BOOTSTRAP SINGLE REAL !!!" << endl;
 
 	srand(time(NULL));
-	//SetNumThreads(8);
+	SetNumThreads(8);
 	TimeUtils timeutils;
 	Ring ring;
 	SecretKey secretKey(ring);

@@ -52,7 +52,7 @@ def minimax(xl1, xr1, xl2, xr2, deg, npoints = 100):
     return power
 
 def _appr_sign_funs(degrees, xmin = -1, xmax = 1,
-                    margin = 0.01, eps=0.02): 
+                    margin = 0.0005, eps=0.02): 
     xin = np.linspace(xmin,#  + 0.1*margin,
                       xmax, 100000)
 
@@ -60,9 +60,18 @@ def _appr_sign_funs(degrees, xmin = -1, xmax = 1,
     for deg in degrees:
         #print(deg, eps, xin.min()-margin, -eps+margin, eps-margin, xin.max()+margin)
         fun = minimax(xin.min()-margin, -eps+margin, eps-margin, xin.max()+margin, deg, npoints = 2*deg+1)
+        #print("[HEMUL] EPS before", eps)
+
+        diff_r = max(abs(fun(xin[xin >= eps]) - 1))
+        diff_l = max(abs(fun(xin[xin <= -eps]) + 1))
+        eps = 1 - max([diff_r, diff_l])
+        #eps = min([eps, 0.9])
+        #print("[HEMUL] EPS now", eps)
+
         xin = fun(xin)
-        eps = 1-(1-2*eps)**2
-        funs.append(fun)
+        #eps = min([abs(fun(-eps+margin)), fun(eps-margin)])
+        #eps = min([eps, 0.9])
+        funs.append((fun, deg))
     return funs
                     
 def appr_sign(xin, xmin=-1, xmax=1, alpha=10, margin = 0.01, eps=0.02, min_depth=True, min_mult=False):
@@ -99,7 +108,8 @@ class ApprSign():
                 xmin=-1,
                 xmax=1,
                 min_depth=True, 
-                min_mult=False):
+                min_mult=False,
+                debug=False):
         self.alpha = alpha
         self.margin = margin
         self.eps = eps
@@ -109,6 +119,7 @@ class ApprSign():
         self.min_mult = min_mult
         self.funs = None
         self.degrees = None
+        self.debug = debug
         if self.alpha is not None:
             self._set_degree()
         if self._params_set():
@@ -138,8 +149,12 @@ class ApprSign():
 
     def __call__(self, xin):
         if self.funs is not None:
-            for fun in self.funs:
+            for fun, deg in self.funs:
                 xin = fun(xin)
+                if self.debug: 
+                    print(f"degree = {deg}")
+                    print(f"min, max", xin.min(), xin.max())
+
             return xin
         else:
             self._set_funs()

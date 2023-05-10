@@ -6,38 +6,20 @@
 * work.  If not, see <http://creativecommons.org/licenses/by-nc/3.0/>.
 */
 #include "Scheme.h"
+
 #include "NTL/BasicThreadPool.h"
 #include "StringUtils.h"
 #include "SerializationUtils.h"
 
-// If Android.
-template <typename T>
-inline string to_string(const T& t)
-{
-    std::ostringstream oss;
-    oss << t;
-    return oss.str();
-}
-
-Scheme::Scheme(Ring& ring, bool isSerialized, string root_path) : ring(ring), isSerialized(isSerialized), RootPath(root_path) {
-    
-    init(root_path);
-
-    // Should be optional? 
-    loadEncKey();
-    loadMultKey();
-};
-
-Scheme::Scheme(SecretKey& secretKey, Ring& ring, bool isSerialized, string root_path): ring(ring), isSerialized(isSerialized), RootPath(root_path){
-	//setHomeDir("");
-	//setEncKeyName("EncKey.txt");
-	//setMulKeyName("MulKey.txt");
-    init(root_path);
-
+Scheme::Scheme(SecretKey& secretKey, Ring& ring, bool isSerialized, string root_path) : ring(ring), isSerialized(isSerialized), root_path(root_path) {
 	addEncKey(secretKey);
 	addMultKey(secretKey);
 };
 
+Scheme::Scheme(Ring& ring, bool isSerialized, string root_path) : ring(ring), isSerialized(isSerialized), root_path(root_path) {
+	loadEncKey();
+	loadMultKey();
+};
 
 Scheme::~Scheme() {
   for (auto const& t : keyMap)
@@ -46,92 +28,15 @@ Scheme::~Scheme() {
     delete t.second;
 }
 
-void Scheme::init(string root_path, string enckeyname, string mulkeyname,string conjkeyname,string rotkeyname) {
-	setHomeDir(root_path);
-	setEncKeyName(enckeyname);
-	setMulKeyName(mulkeyname);
-	setConjKeyName(conjkeyname);
-	//setRotKeyName(rotkeyname);
-
-}
-
-void Scheme::init(string root_path) {
-	setHomeDir(root_path);
-	setEncKeyName("EncKey.txt");
-	setMulKeyName("MulKey.txt");
-	setConjKeyName("ConjKey.txt");
-	//setRotKeyName("RotKey_" + to_string(r) + ".txt");
-
-}
-
-void Scheme::addKeys(SecretKey& secretKey){
-	addEncKey(secretKey);
-	addMultKey(secretKey);
-}
 void Scheme::loadEncKey() {
 	if(isSerialized) {
-		string path = RootPath + EncKeyName;
-		Key* key = new Key(); // Should I delete it before closing the program?
+		string path = root_path + "serkey/ENCRYPTION.txt";
+		std::cout << "loading Keys from " << path << std::endl;
+		Key* key = new Key();
 		SerializationUtils::readKey(key, path);
 		keyMap.insert(pair<long, Key*>(ENCRYPTION, key));
 	}
 }	
-
-void Scheme::loadMultKey() {
-	if(isSerialized) {
-		Key* key = new Key();
-		string path = RootPath + MulKeyName;
-		SerializationUtils::readKey(key, path);
-		keyMap.insert(pair<long, Key*>(MULTIPLICATION, key));
-	}
-}
-
-void Scheme::loadConjKey() {
-	if(isSerialized) {	
-		Key* key = new Key();
-		string path = RootPath + ConjKeyName;
-		SerializationUtils::readKey(key, path);
-		keyMap.insert(pair<long, Key*>(CONJUGATION, key));
-	}
-}
-
-void Scheme::loadLeftRotKey(long r) {
-	if(isSerialized) {
-		Key* key = new Key();
-        //RotKeyName = 
-		string path = RootPath + "RotKey_" + to_string(r) + ".txt";
-		SerializationUtils::readKey(key, path);
-		leftRotKeyMap.insert(pair<long, Key*>(r, key));
-	}
-}
-
-
-void Scheme::setHomeDir(string path){
-	RootPath = path;
-}
-
-void Scheme::setEncKeyName(string fname){
-	EncKeyName = fname;
-	serKeyMap.insert(pair<long, string>(ENCRYPTION, RootPath + EncKeyName));
-}
-
-void Scheme::setMulKeyName(string fname){
-	MulKeyName = fname;
-}
-
-void Scheme::setConjKeyName(string fname){
-	ConjKeyName = fname;
-}
-
-void Scheme::setRotKeyName(string fname){
-	RotKeyName = fname;
-}
-
-
-string Scheme::getSerKeyPath(int idx){
-	return serKeyMap.at(idx);
-}
-
 
 void Scheme::addEncKey(SecretKey& secretKey) {
 	ZZ* ax = new ZZ[N];
@@ -148,12 +53,22 @@ void Scheme::addEncKey(SecretKey& secretKey) {
 	delete[] ax; delete[] bx;
 
 	if(isSerialized) {
-        string path = RootPath + EncKeyName;
+		string path = root_path + "serkey/ENCRYPTION.txt";
+		std::cout << "saving Keys to " << path << std::endl;
 		SerializationUtils::writeKey(key, path);
 		serKeyMap.insert(pair<long, string>(ENCRYPTION, path));
-		//delete key;
 	}
-	keyMap.insert(pair<long, Key*>(ENCRYPTION, key));
+    keyMap.insert(pair<long, Key*>(ENCRYPTION, key));
+}
+
+void Scheme::loadMultKey() {
+	Key* key = new Key();
+	string path = root_path + "serkey/MULTIPLICATION.txt";
+	std::cout << "loading Keys from " << path << std::endl;
+	SerializationUtils::readKey(key, path);
+	if(isSerialized) {
+		keyMap.insert(pair<long, Key*>(MULTIPLICATION, key));
+	}
 }
 
 void Scheme::addMultKey(SecretKey& secretKey) {
@@ -177,13 +92,22 @@ void Scheme::addMultKey(SecretKey& secretKey) {
 	ring.CRT(key->rbx, bx, nprimes);
 	delete[] ax; delete[] bx;
 	if(isSerialized) {
-		string path = RootPath + MulKeyName;
+        string path = root_path + "serkey/MULTIPLICATION.txt";
+		std::cout << "saving Keys to " << path << std::endl;
 		SerializationUtils::writeKey(key, path);
 		serKeyMap.insert(pair<long, string>(MULTIPLICATION, path));
-		//delete key;
-	}// else {
-	keyMap.insert(pair<long, Key*>(MULTIPLICATION, key));
-	
+	}
+    keyMap.insert(pair<long, Key*>(MULTIPLICATION, key));
+}
+
+void Scheme::loadConjKey() {
+	Key* key = new Key();
+	string path = root_path + "serkey/CONJUGATION.txt";
+	std::cout << "loading Keys from " << path << std::endl;
+	SerializationUtils::readKey(key, path);
+	if(isSerialized) {
+		keyMap.insert(pair<long, Key*>(CONJUGATION, key));
+	}
 }
 
 void Scheme::addConjKey(SecretKey& secretKey) {
@@ -207,12 +131,20 @@ void Scheme::addConjKey(SecretKey& secretKey) {
 	delete[] ax; delete[] bx;
 
 	if(isSerialized) {
-		string path = RootPath + ConjKeyName;
-		SerializationUtils::writeKey(key, path);
+		string path = root_path + "serkey/CONJUGATION.txt";
+		std::cout << "saving Keys to " << path << std::endl;
+        SerializationUtils::writeKey(key, path);
 		serKeyMap.insert(pair<long, string>(CONJUGATION, path));
-		//delete key;
-	}// else {
-	keyMap.insert(pair<long, Key*>(CONJUGATION, key));
+	}
+    keyMap.insert(pair<long, Key*>(CONJUGATION, key));
+}
+void Scheme::loadLeftRotKey(long r) {
+	Key* key = new Key();
+	string path = root_path + "serkey/ROTATION_" + to_string(r) + ".txt";
+	std::cout << "loading Keys from " << path << std::endl;
+	SerializationUtils::readKey(key, path);
+	//if(isSerialized) {
+	leftRotKeyMap.insert(pair<long, Key*>(r, key));
 	//}
 }
 
@@ -238,13 +170,12 @@ void Scheme::addLeftRotKey(SecretKey& secretKey, long r) {
 	delete[] ax; delete[] bx;
 
 	if(isSerialized) {
-		string path = RootPath + "RotKey_" + to_string(r) + ".txt";
+		string path = root_path + "serkey/ROTATION_" + to_string(r) + ".txt";
+		std::cout << "saving Keys to " << path << std::endl;
 		SerializationUtils::writeKey(key, path);
 		serLeftRotKeyMap.insert(pair<long, string>(r, path));
-		//delete key;
-	} //else {
-	leftRotKeyMap.insert(pair<long, Key*>(r, key));
-	//}
+	}
+    leftRotKeyMap.insert(pair<long, Key*>(r, key));
 }
 
 void Scheme::loadRightRotKey(long r) {
@@ -260,7 +191,6 @@ void Scheme::addRightRotKey(SecretKey& secretKey, long r) {
 		addLeftRotKey(secretKey, idx);
 	}
 }
-
 
 void Scheme::loadLeftRotKeys() {
 	for (long i = 0; i < logN - 1; ++i) {
@@ -302,9 +232,7 @@ void Scheme::addBootKey(SecretKey& secretKey, long logl, long logp) {
 	ring.addBootContext(logl, logp);
 
 	addConjKey(secretKey);
-	cout << "Conjugation key added" << endl;
 	addLeftRotKeys(secretKey);
-	cout << "Left rotation keys added" << endl;
 
 	long loglh = logl/2;
 	long k = 1 << loglh;
@@ -407,11 +335,9 @@ void Scheme::encryptMsg(Ciphertext& cipher, Plaintext& plain) {
 	ZZ* vx = new ZZ[N];
 	ring.sampleZO(vx);
 
-	//Key* key = isSerialized ? SerializationUtils::readKey(serKeyMap.at(ENCRYPTION)) : keyMap.at(ENCRYPTION);
 	Key* key = keyMap.at(ENCRYPTION);
 
 	long np = ceil((1 + logQQ + logN + 2)/(double)pbnd);
-	
 	ring.multNTT(cipher.ax, vx, key->rax, np, qQ);
 
 	ring.multNTT(cipher.bx, vx, key->rbx, np, qQ);
@@ -678,7 +604,6 @@ void Scheme::mult(Ciphertext& res, Ciphertext& cipher1, Ciphertext& cipher2) {
 	ring.addNTTAndEqual(ra2, rb2, np);
 	ring.multDNTT(axbx, ra1, ra2, np, q);
 
-	//Key* key = isSerialized ? SerializationUtils::readKey(serKeyMap.at(MULTIPLICATION)) : keyMap.at(MULTIPLICATION);
 	Key* key = keyMap.at(MULTIPLICATION);
 
 	np = ceil((cipher1.logq + logQQ + logN + 2)/(double)pbnd);
@@ -731,7 +656,6 @@ void Scheme::multAndEqual(Ciphertext& cipher1, Ciphertext& cipher2) {
 	ring.addNTTAndEqual(ra2, rb2, np);
 	ring.multDNTT(axbx, ra1, ra2, np, q);
 
-	//Key* key = isSerialized ? SerializationUtils::readKey(serKeyMap.at(MULTIPLICATION)) : keyMap.at(MULTIPLICATION);
 	Key* key = keyMap.at(MULTIPLICATION);
 
 	np = ceil((cipher1.logq + logQQ + logN + 2)/(double)pbnd);
@@ -739,6 +663,61 @@ void Scheme::multAndEqual(Ciphertext& cipher1, Ciphertext& cipher2) {
 	ring.CRT(raa, axax, np);
 	ring.multDNTT(cipher1.ax, raa, key->rax, np, qQ);
 	ring.multDNTT(cipher1.bx, raa, key->rbx, np, qQ);
+
+	ring.rightShiftAndEqual(cipher1.ax, logQ);
+	ring.rightShiftAndEqual(cipher1.bx, logQ);
+
+	ring.addAndEqual(cipher1.ax, axbx, q);
+	ring.subAndEqual(cipher1.ax, bxbx, q);
+	ring.subAndEqual(cipher1.ax, axax, q);
+	ring.addAndEqual(cipher1.bx, bxbx, q);
+
+	delete[] axax;
+	delete[] bxbx;
+	delete[] axbx;
+	delete[] ra1;
+	delete[] ra2;
+	delete[] rb1;
+	delete[] rb2;
+	delete[] raa;
+
+	cipher1.logp += cipher2.logp;
+}
+
+void Scheme::multAndEqual_FPGA(Ciphertext& cipher1, Ciphertext& cipher2) {
+
+	ZZ q = ring.qpows[cipher1.logq];
+	ZZ qQ = ring.qpows[cipher1.logq + logQ];
+
+	long np = ceil((2 + cipher1.logq + cipher2.logq + logN + 2)/(double)pbnd);
+
+	uint64_t* ra1 = new uint64_t[np << logN];
+	uint64_t* rb1 = new uint64_t[np << logN];
+	uint64_t* ra2 = new uint64_t[np << logN];
+	uint64_t* rb2 = new uint64_t[np << logN];
+
+	ring.CRT(ra1, cipher1.ax, np);
+	ring.CRT(rb1, cipher1.bx, np);
+	ring.CRT(ra2, cipher2.ax, np);
+	ring.CRT(rb2, cipher2.bx, np);
+
+	ZZ* axax = new ZZ[N];
+	ZZ* bxbx = new ZZ[N];
+	ZZ* axbx = new ZZ[N];
+
+	ring.multDNTT_FPGA(axax, ra1, ra2, np, q);
+	ring.multDNTT_FPGA(bxbx, rb1, rb2, np, q);
+	ring.addNTTAndEqual(ra1, rb1, np);
+	ring.addNTTAndEqual(ra2, rb2, np);
+	ring.multDNTT_FPGA(axbx, ra1, ra2, np, q);
+
+	 Key* key = keyMap.at(MULTIPLICATION);
+
+	np = ceil((cipher1.logq + logQQ + logN + 2)/(double)pbnd);
+	uint64_t* raa = new uint64_t[np << logN];
+	ring.CRT(raa, axax, np);
+	ring.multDNTT_FPGA(cipher1.ax, raa, key->rax, np, qQ);
+	ring.multDNTT_FPGA(cipher1.bx, raa, key->rbx, np, qQ);
 
 	ring.rightShiftAndEqual(cipher1.ax, logQ);
 	ring.rightShiftAndEqual(cipher1.bx, logQ);
@@ -785,7 +764,6 @@ void Scheme::square(Ciphertext& res, Ciphertext& cipher) {
 	ring.multDNTT(axbx, ra, rb, np, q);
 	ring.addAndEqual(axbx, axbx, q);
 
-	//Key* key = isSerialized ? SerializationUtils::readKey(serKeyMap.at(MULTIPLICATION)) : keyMap.at(MULTIPLICATION);
 	Key* key = keyMap.at(MULTIPLICATION);
 
 	np = ceil((cipher.logq + logQQ + logN + 2)/(double)pbnd);
@@ -831,7 +809,6 @@ void Scheme::squareAndEqual(Ciphertext& cipher) {
 	ring.multDNTT(axbx, ra, rb, np, q);
 	ring.addAndEqual(axbx, axbx, q);
 
-	//Key* key = isSerialized ? SerializationUtils::readKey(serKeyMap.at(MULTIPLICATION)) : keyMap.at(MULTIPLICATION);
 	Key* key = keyMap.at(MULTIPLICATION);
 
 	np = ceil((cipher.logq + logQQ + logN + 2)/(double)pbnd);
@@ -879,19 +856,6 @@ void Scheme::multByConstVec(Ciphertext& res, Ciphertext& cipher, complex<double>
 }
 
 void Scheme::multByConstVecAndEqual(Ciphertext& cipher, complex<double>* cnstVec, long logp) {
-	long slots = cipher.n;
-	ZZ* cnstPoly = new ZZ[N];
-	ring.encode(cnstPoly, cnstVec, slots, logp);
-	multByPolyAndEqual(cipher, cnstPoly, logp);
-	delete[] cnstPoly;
-}
-
-void Scheme::multByConstVec(Ciphertext& res, Ciphertext& cipher, double* cnstVec, long logp) {
-	res.copy(cipher);
-	multByConstVecAndEqual(res, cnstVec, logp);
-}
-
-void Scheme::multByConstVecAndEqual(Ciphertext& cipher, double* cnstVec, long logp) {
 	long slots = cipher.n;
 	ZZ* cnstPoly = new ZZ[N];
 	ring.encode(cnstPoly, cnstVec, slots, logp);
@@ -1106,7 +1070,6 @@ void Scheme::leftRotateFast(Ciphertext& res, Ciphertext& cipher, long r) {
 	ring.leftRotate(bxrot, cipher.bx, r);
 	ring.leftRotate(axrot, cipher.ax, r);
 
-	//Key* key = isSerialized ? SerializationUtils::readKey(serLeftRotKeyMap.at(r)) : leftRotKeyMap.at(r);
 	Key* key = leftRotKeyMap.at(r);
 	res.copyParams(cipher);
 
@@ -1133,7 +1096,6 @@ void Scheme::leftRotateFastAndEqual(Ciphertext& cipher, long r) {
 
 	ring.leftRotate(bxrot, cipher.bx, r);
 	ring.leftRotate(axrot, cipher.ax, r);
-	//Key* key = isSerialized ? SerializationUtils::readKey(serLeftRotKeyMap.at(r)) : leftRotKeyMap.at(r);
 	Key* key = leftRotKeyMap.at(r);
 	long np = ceil((cipher.logq + logQQ + logN + 2)/(double)pbnd);
 	uint64_t* rarot = new uint64_t[np << logN];
@@ -1171,7 +1133,6 @@ void Scheme::conjugate(Ciphertext& res, Ciphertext& cipher) {
 	ring.conjugate(bxconj, cipher.bx);
 	ring.conjugate(axconj, cipher.ax);
 
-	//Key* key = isSerialized ? SerializationUtils::readKey(serKeyMap.at(CONJUGATION)) : keyMap.at(CONJUGATION);
 	Key* key = keyMap.at(CONJUGATION);
 	res.copyParams(cipher);
 	long np = ceil((cipher.logq + logQQ + logN + 2)/(double)pbnd);
@@ -1199,7 +1160,6 @@ void Scheme::conjugateAndEqual(Ciphertext& cipher) {
 	ring.conjugate(bxconj, cipher.bx);
 	ring.conjugate(axconj, cipher.ax);
 
-	//Key* key = isSerialized ? SerializationUtils::readKey(serKeyMap.at(CONJUGATION)) : keyMap.at(CONJUGATION);
 	Key* key = keyMap.at(CONJUGATION);
 
 	long np = ceil((cipher.logq + logQQ + logN + 2)/(double)pbnd);

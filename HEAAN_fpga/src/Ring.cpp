@@ -20,7 +20,7 @@
 
 
 Ring::Ring() {
-	SetNumThreads(8); // NTL multi-threading by default
+
 	qpows = new ZZ[logQQ + 1];
 	qpows[0] = ZZ(1);
 	for (long i = 1; i < logQQ + 1; ++i) {
@@ -341,6 +341,9 @@ void Ring::multNTT(ZZ* x, ZZ* a, uint64_t* rb, long np, const ZZ& q) {
 void Ring::multDNTT(ZZ* x, uint64_t* ra, uint64_t* rb, long np, const ZZ& q) {
 	multiplier.multDNTT(x, ra, rb, np, q);
 }
+void Ring::multDNTT_FPGA(ZZ* x, uint64_t* ra, uint64_t* rb, long np, const ZZ& q) {
+	multiplier.multDNTT_FPGA(x, ra, rb, np, q);
+}
 
 void Ring::multAndEqual(ZZ* a, ZZ* b, long np, const ZZ& q) {
 	multiplier.multAndEqual(a, b, np, q);
@@ -623,9 +626,7 @@ void Ring::addGaussAndEqual(ZZ* res, const ZZ& q, double _sigma) {
 		AddMod(res[i + 1], res[i + 1], (long) floor(rr * sin(theta) + 0.5), q);
 	}
 }
-/*
-NTL::bit(a, b) a변수의 b번째 bit를 가져옴
-*/
+
 void Ring::sampleHWT(ZZ* res) {
 	long idx = 0;
 	ZZ tmp = RandomBits_ZZ(h);

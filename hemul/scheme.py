@@ -28,54 +28,33 @@ if not FHE_exists:
     if conf["runtime"]['scheme'] == "HEAAN":
         print("binding to HEAAN")
         from hemul.base_heaan import FHE_OP
+        from hemul.base_heaan import Encoder, Encryptor, Decryptor
     elif conf['runtime']['scheme'] == "EMUL":
         print("runnin in emulation mode")
         from hemul.base_emul import FHE_OP
+        from hemul.base_emul import Encoder, Encryptor, Decryptor
    
 
-class Encoder():
-    def __init__(self, context):
-        self.logp = context.params.logp
-        self.nslots = context.params.nslots
+def set_all(logp, logq, logn):
+    myring = Ring(seed=1234)
+    parms = Parameters(logp = logp, logq = logq, logn = logn)
+    nslots = 2**parms.logn
+    context = Context(parms, myring)
 
-    def encode(self, arr, logp=None, nslots=None):
-        if logp:
-            self.logp = logp
-        if nslots:
-            self.nstlos = nslots
+    sk = context.generate_secret_key()
+    keys = {"mult":context.generate_mult_key(),
+        "rot":{'1':'hi1',
+               '2':'hi2',
+               '4':'hi4',
+               '8':'hi8'}}
+    ev = Evaluator(keys, context) # Evaluator도 그냥 context만 넣게 할까? 
 
-        assert(self.logp != None), 'Ptxt scale not set'
+    encoder = Encoder(context)
+    encryptor = Encryptor(context)
+    decryptor = Decryptor(sk)
 
-        return Plaintext(arr=arr, logp = self.logp, nslots = self.nslots)
-
-
-class Encryptor():
-    def __init__(self, context:Context):
-        self._context = context
-        self._enc_key = self._context.enc_key
-        self.enckey_hash = key_hash(self._enc_key)
-    
-    def encrypt(self, arr):
-        # How to determine if I want Ciphertext or CiphertextStat?
-        ctxt = CiphertextStat(self._context.params.logp, 
-                              self._context.params.logq,
-                              self._context.params.logn)
-        
-        #encoded = _stringify(arr)
-        ctxt._set_arr(self.enckey_hash, arr)
-        # TODO: Need to determine nslots 
-        return ctxt
-
-class Decryptor():
-    def __init__(self, secret_key):
-        self._secret_key = secret_key
-        self._sk_hash = key_hash(secret_key)
-    
-    def decrypt(self, ctxt):
-        if ctxt._enckey_hash == self._sk_hash and ctxt._encrypted:
-            return ctxt._arr
-        else:
-            raise ValueError("You have a wrong secret key")
+    print("FHE context is set")
+    return context, ev, encoder, encryptor, decryptor
 
 @staticmethod
 def create_new_ctxt(ctxt):

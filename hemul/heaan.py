@@ -1,5 +1,8 @@
 import numpy as np
-import hemul.HEAAN as he
+import hemul
+from hemul import loader
+he = loader.load()
+#from hemul import he
 
 class HEAANContext():
     def __init__(self, 
@@ -9,9 +12,9 @@ class HEAANContext():
                 is_owner=True,
                 rot_l = None,
                 rot_r = None,
-                boot=True,
+                boot=False,
                 key_path="./",
-                load_sk=False,
+                load_keys=False,
                 logqBoot=None,
                 FN_SK="SecretKey.txt",
                 FN_ENC="EncKey.txt",
@@ -39,7 +42,7 @@ class HEAANContext():
                 Generate bootstrapping key (, which requires all the rotation keys)
             key_path: string
                 path to keys
-            load_sk: bool
+            load_keys: bool
                 load secretkey. Effective only when is_owner==True 
             
 
@@ -66,7 +69,7 @@ class HEAANContext():
         self.ring = he.Ring()
         if self._is_owner:
             print("Initializing the scheme as the data owner", flush=True)
-            if load_sk:
+            if load_keys:
                 print("Loading a secret key from: ", self._key_path+FN_SK, flush=True)
                 self.sk = he.SecretKey(self._key_path+FN_SK)
                 
@@ -97,6 +100,7 @@ class HEAANContext():
                 if rot_r is not None: 
                     self.addRkey(self._rkey)
                 if boot: 
+                    print("Adding Boot Keys")
                     self._scheme.addBootKey(self.sk, self.parms.logn, self.parms.logq + self.parms.logI)
             
         else:
@@ -111,7 +115,7 @@ class HEAANContext():
 
     @staticmethod
     def gen_2_exp(n):
-        return [2**nn for nn in range(n+1)]
+        return [2**nn for nn in range(n)]
 
     def parse_rotkey(self, rotkey):
         """Figure out which rotation keys to use
@@ -288,7 +292,23 @@ class HEAANContext():
                                     self.parms.logQ,
                                     self.parms.logT,
                                     self.parms.logI)
-            print("bootstrap done")            
+            print("bootstrap done")
+    
+    def bootstrap2(self, ctxt, inplace=True):
+        """Bootstrap 
+
+        parameters
+        ----------
+        ctxt: HEAAN Ciphertext
+        inplace: bool [True]
+        """
+        # if inplace:
+        dec = self.decrypt(ctxt)
+        ctxt = self.encrypt(dec)#, self.parms.n, self.parms.logp, logq)
+        print("bootstrap done")            
+        return ctxt
+
+
 
     def add(self, ctxt1, ctxt2, inplace=False):
         """Add ctxt2 to ctxt1
@@ -444,24 +464,61 @@ class HEAANContext():
         """
         self._scheme.modDownToAndEqual(ctxt, target.logq)
 
+    def modDownTo(self, ctxt, logq):
+        """Switch mod of ctxt down to target.logq
+
+        parameters
+        ----------
+        ctxt: HEAAN Ciphertext 
+        target: HEAAN Ciphertext
+        """
+        self._scheme.modDownToAndEqual(ctxt, logq)
+
+    def modDownBy(self, ctxt, dlogq, inplace=False):
+        """Switch mod of ctxt down to target.logq
+
+        parameters
+        ----------
+        ctxt: HEAAN Ciphertext 
+        target: HEAAN Ciphertext
+        """
+        if inplace:
+            self._scheme.modDownByAndEqual(ctxt, dlogq)
+        else:
+            return self._scheme.modDownBy(ctxt, dlogq)
+
     def lrot(self, ctxt, r, inplace=False):
         """Left-rotate by r
         or, bring element at index r to index 0.
         """
+        if r ==0 and not inplace:
+            return he.Ciphertext(ctxt)
+
+        #print("Rotation by", r)
         if r < 0:
-            r = self.parms.n - r
-        
+            r = self.parms.n + r
+            #print("= Rotation by", r)
+
         if inplace:  
-            for rr in HEAANContext.split_in_twos(r):
-                self._scheme.leftRotateFastAndEqual(ctxt, rr)
+            if r in self._lkey:
+                self._scheme.leftRotateFastAndEqual(ctxt, r)
+            else:
+                for rr in HEAANContext.split_in_twos(r):
+                    self._scheme.leftRotateFastAndEqual(ctxt, rr)
         else:
-            new_ctxt = None
-            for rr in HEAANContext.split_in_twos(r):
-                if new_ctxt is None:
-                    new_ctxt = he.Ciphertext()
-                    self._scheme.leftRotateFast(new_ctxt, ctxt, rr)
-                else:
-                    self._scheme.leftRotateFastAndEqual(new_ctxt, rr)
+            if r in self._lkey:
+                new_ctxt = he.Ciphertext()
+                #print("Rotation by", r)
+                self._scheme.leftRotateFast(new_ctxt, ctxt, r)
+            else:
+                new_ctxt = None
+                for rr in HEAANContext.split_in_twos(r):
+                    #print("rr", rr)
+                    if new_ctxt is None:
+                        new_ctxt = he.Ciphertext()
+                        self._scheme.leftRotateFast(new_ctxt, ctxt, rr)
+                    else:
+                        self._scheme.leftRotateFastAndEqual(new_ctxt, rr)
             return new_ctxt
 
     def rrot(self, ctxt, r, inplace=False):
@@ -489,6 +546,17 @@ class HEAANContext():
             if int(d) == 1: nums.append(int(d))
 
         return nums
+
+    def function_poly(self, coeffs, ctx):
+        """wrapper of polynomial evaluation functions of HEAAN and SEAL
+        """
+        output = he.Ciphertext()
+        self.algo.function_poly(output, 
+                    ctx, 
+                    he.Double(coeffs), 
+                    self.parms.logp, 
+                    len(coeffs)-1)
+        return output
 
 
 

@@ -28,11 +28,10 @@ Scheme::Scheme(Ring& ring, bool isSerialized, string root_path) : ring(ring), is
     loadMultKey();
 };
 
-Scheme::Scheme(SecretKey& secretKey, Ring& ring, bool isSerialized, string root_path): ring(ring), isSerialized(isSerialized), RootPath(root_path){
+Scheme::Scheme(SecretKey& secretKey, Ring& ring, bool isSerialized, string root_path) : ring(ring), isSerialized(isSerialized), RootPath(root_path){
 	//setHomeDir("");
-	//setEncKeyName("EncKey.txt");
-	//setMulKeyName("MulKey.txt");
-    init(root_path);
+	setEncKeyName("EncKey.txt");
+	setMulKeyName("MulKey.txt");
 
 	addEncKey(secretKey);
 	addMultKey(secretKey);
@@ -302,9 +301,7 @@ void Scheme::addBootKey(SecretKey& secretKey, long logl, long logp) {
 	ring.addBootContext(logl, logp);
 
 	addConjKey(secretKey);
-	cout << "Conjugation key added" << endl;
 	addLeftRotKeys(secretKey);
-	cout << "Left rotation keys added" << endl;
 
 	long loglh = logl/2;
 	long k = 1 << loglh;
@@ -759,6 +756,62 @@ void Scheme::multAndEqual(Ciphertext& cipher1, Ciphertext& cipher2) {
 
 	cipher1.logp += cipher2.logp;
 }
+
+void Scheme::multAndEqual_FPGA(Ciphertext& cipher1, Ciphertext& cipher2) {
+
+	ZZ q = ring.qpows[cipher1.logq];
+	ZZ qQ = ring.qpows[cipher1.logq + logQ];
+
+	long np = ceil((2 + cipher1.logq + cipher2.logq + logN + 2)/(double)pbnd);
+
+	uint64_t* ra1 = new uint64_t[np << logN];
+	uint64_t* rb1 = new uint64_t[np << logN];
+	uint64_t* ra2 = new uint64_t[np << logN];
+	uint64_t* rb2 = new uint64_t[np << logN];
+
+	ring.CRT(ra1, cipher1.ax, np);
+	ring.CRT(rb1, cipher1.bx, np);
+	ring.CRT(ra2, cipher2.ax, np);
+	ring.CRT(rb2, cipher2.bx, np);
+
+	ZZ* axax = new ZZ[N];
+	ZZ* bxbx = new ZZ[N];
+	ZZ* axbx = new ZZ[N];
+
+	ring.multDNTT_FPGA(axax, ra1, ra2, np, q);
+	ring.multDNTT_FPGA(bxbx, rb1, rb2, np, q);
+	ring.addNTTAndEqual(ra1, rb1, np);
+	ring.addNTTAndEqual(ra2, rb2, np);
+	ring.multDNTT_FPGA(axbx, ra1, ra2, np, q);
+
+	 Key* key = keyMap.at(MULTIPLICATION);
+
+	np = ceil((cipher1.logq + logQQ + logN + 2)/(double)pbnd);
+	uint64_t* raa = new uint64_t[np << logN];
+	ring.CRT(raa, axax, np);
+	ring.multDNTT_FPGA(cipher1.ax, raa, key->rax, np, qQ);
+	ring.multDNTT_FPGA(cipher1.bx, raa, key->rbx, np, qQ);
+
+	ring.rightShiftAndEqual(cipher1.ax, logQ);
+	ring.rightShiftAndEqual(cipher1.bx, logQ);
+
+	ring.addAndEqual(cipher1.ax, axbx, q);
+	ring.subAndEqual(cipher1.ax, bxbx, q);
+	ring.subAndEqual(cipher1.ax, axax, q);
+	ring.addAndEqual(cipher1.bx, bxbx, q);
+
+	delete[] axax;
+	delete[] bxbx;
+	delete[] axbx;
+	delete[] ra1;
+	delete[] ra2;
+	delete[] rb1;
+	delete[] rb2;
+	delete[] raa;
+
+	cipher1.logp += cipher2.logp;
+}
+
 
 //-----------------------------------------
 

@@ -15,7 +15,7 @@ def build(setup_kwargs):
             '/usr/local/include',
             'HEAAN/src'],
             language='c++',
-            extra_compile_args=['-std=c++17'],
+            extra_compile_args=['-std=c++11'],
             extra_objects=['/usr/local/lib/libntl.so', 'HEAAN/lib/libHEAAN.a'],
             #define_macros = [('VERSION_INFO', __version__)],
             package_dir = {'': 'hemul/'},

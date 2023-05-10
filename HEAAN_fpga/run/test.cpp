@@ -15,11 +15,10 @@
   */
 int main(int argc, char **argv) {
 
-	long logq = 60; ///< Ciphertext Modulus
+	long logq = 800; ///< Ciphertext Modulus
 	long logp = 30; ///< Real message will be quantized by multiplying 2^40
-	long logn = 13; ///< log2(The number of slots)
+	long logn = 4; ///< log2(The number of slots)
 
-    //TestScheme::testWriteAndRead(logq, logp, logn);
 //----------------------------------------------------------------------------------
 //   STANDARD TESTS
 //----------------------------------------------------------------------------------
@@ -45,7 +44,7 @@ int main(int argc, char **argv) {
 //----------------------------------------------------------------------------------
     
     logq = logp + 10; //< suppose the input ciphertext of bootstrapping has logq = logp + 10
-    logn = 9; //< larger logn will make bootstrapping tech much slower
+    logn = 3; //< larger logn will make bootstrapping tech much slower
     long logT = 4; //< this means that we use Taylor approximation in [-1/T,1/T] with double angle fomula
     if(string(argv[1]) == "Bootstrapping") TestScheme::testBootstrap(logq, logp, logn, logT);
 
