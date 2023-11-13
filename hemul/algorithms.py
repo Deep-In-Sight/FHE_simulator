@@ -164,11 +164,3 @@ class Algorithms():
         ev = self.evaluator
 
         return ev.mult(ctxt, self.inv_sqrt(ctxt), inplace=False)
-
-################# comp #################
-    #def comp(self, ctxt1:Ciphertext, oper2):
-    # comparator_fhe 참조
-
-
-    #def eval_poly(self, ctxt:CiphertextStat, coeff:list, tol=1e-6):
-    # foudn in scheme.py
