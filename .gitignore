@@ -21,3 +21,4 @@ HEAAN/lib/src/*
 HEAAN/lib/libHEAAN.a
 *.txt
 *.d
+third_party/*
