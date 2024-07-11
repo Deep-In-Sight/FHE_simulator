@@ -8,7 +8,9 @@ def load():
         import hemul.HEAAN_cuda as he
         print("Using CUDA version HEAAN")
     else:
-        import hemul.HEAAN as he
+        from fase.heaan_loader import load
+        he = load()
+        #import hemul.HEAAN as he
         print("Using CPU version HEAAN")
 
     return he
