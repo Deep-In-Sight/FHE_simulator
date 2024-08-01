@@ -21,6 +21,7 @@ class HEAANContext():
                 FN_MUL="MulKey.txt",
                 FN_ROT="RotKey.txt",
                 FN_CONJ="ConjKey.txt"):
+        # [0801] INIT 부분은 백엔드-dependent한 부분이므로, 이 부분은 무시.
         """Setup a HEAAN context and initialize all the relevant attributes.
 
             Parameters
@@ -138,8 +139,7 @@ class HEAANContext():
             if isinstance(rotkey, int): return [rotkey]
             print("rotkey provided:", rotkey)
             raise ValueError("Rotation key not understood -- None," 
-                            "'all', or an iterable of integers are expected")
-                
+                            "'all', or an iterable of integers are expected")      
 
     def addLkey(self, r=None):
         """ Generate Left rotation keys for r
